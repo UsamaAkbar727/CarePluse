@@ -100,3 +100,39 @@ th {
   background: #d4edda;
   color: #155724;
 }
+
+/* Password Toggle Styles */
+.password-field-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-field-container .form-control {
+    padding-right: 48px;
+}
+
+.password-toggle-icon {
+    position: absolute;
+    right: 14px;
+    background: none;
+    border: none;
+    padding: 0;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    z-index: 10;
+}
+
+.password-toggle-icon:hover {
+    color: var(--accent);
+    transform: scale(1.1);
+}
+
+.password-toggle-icon:focus {
+    outline: none;
+}

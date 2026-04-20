@@ -1,544 +1,271 @@
 <?php
-session_start();
-if (!isset($_SESSION['admin_user'])) {
-    header("Location: login.php");
-    exit();
-}
-include('config.php');
+$page_title = 'Dashboard';
+require 'includes/header.php';
 
-if (isset($_GET['delete_id'])) {
-    $id = $_GET['delete_id'];
-    mysqli_query($conn, "DELETE FROM appointments WHERE id = $id");
-    header("Location: index.php");
-    exit();
+$pdo = get_db_pdo();
+$user_role = $_SESSION['role'];
+$user_id = $_SESSION['user_id'];
+
+// Role-based stats
+$stats = [
+    'total_appts' => 0,
+    'pending_appts' => 0,
+    'total_patients' => 0,
+    'total_doctors' => 0,
+    'today_appts' => 0
+];
+
+if ($user_role === 'admin' || $user_role === 'receptionist') {
+    $stats['total_appts'] = $pdo->query('SELECT COUNT(*) FROM appointments')->fetchColumn();
+    $stats['pending_appts'] = $pdo->query("SELECT COUNT(*) FROM appointments WHERE status = 'pending'")->fetchColumn();
+    $stats['total_patients'] = $pdo->query('SELECT COUNT(*) FROM patients')->fetchColumn();
+    $stats['total_doctors'] = $pdo->query('SELECT COUNT(*) FROM doctors WHERE status = "available"')->fetchColumn();
+    $stats['today_appts'] = $pdo->query('SELECT COUNT(*) FROM appointments WHERE DATE(app_date) = CURDATE()')->fetchColumn();
+} elseif ($user_role === 'doctor') {
+    $doctor_id = get_doctor_id($pdo);
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM appointments WHERE doctor_id = ?');
+    $stmt->execute([$doctor_id]);
+    $stats['total_appts'] = $stmt->fetchColumn();
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM appointments WHERE doctor_id = ? AND status = "pending"');
+    $stmt->execute([$doctor_id]);
+    $stats['pending_appts'] = $stmt->fetchColumn();
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM appointments WHERE doctor_id = ? AND DATE(app_date) = CURDATE()');
+    $stmt->execute([$doctor_id]);
+    $stats['today_appts'] = $stmt->fetchColumn();
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CarePulse | Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
-        }
-
-        body {
-            display: flex;
-            background: #f4f7fe;
-            color: #2b3674;
-        }
-
-        /* Sidebar - Enhanced */
-        .sidebar {
-            width: 280px;
-            height: 100vh;
-            background: #111c44;
-            color: #fff;
-            position: fixed;
-            padding: 30px 25px;
-            z-index: 1000;
-            box-shadow: 6px 0px 25px rgba(0, 0, 0, 0.15);
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar-brand i {
-            font-size: 32px;
-            color: #70adf1;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px;
-            border-radius: 12px;
-        }
-
-        .sidebar h2 {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            color: #fff;
-        }
-
-        .sidebar a {
-            display: flex;
-            align-items: center;
-            color: #a3aed0;
-            padding: 16px 20px;
-            text-decoration: none;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .sidebar a i {
-            width: 30px;
-            font-size: 20px;
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar a:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            transform: translateX(5px);
-        }
-
-        .sidebar a:hover i {
-            transform: scale(1.1);
-        }
-
-        .sidebar a.active {
-            background: #4318FF;
-            color: #fff;
-            box-shadow: 0px 8px 20px rgba(67, 24, 255, 0.25);
-        }
-
-        .sidebar a.active::after {
-            content: '';
-            position: absolute;
-            right: 15px;
-            width: 6px;
-            height: 6px;
-            background: #fff;
-            border-radius: 50%;
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 280px;
-            width: calc(100% - 280px);
-            padding: 40px;
-        }
-
-        .header-flex {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        /* Stats Cards - Optimized Size */
-        .card-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: #fff;
-            padding: 25px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
-            transition: all 0.3s ease;
-            border: 1px solid rgba(234, 236, 247, 0.8);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-        }
-
-        .icon-box {
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 18px;
-            font-size: 22px;
-            color: #fff;
-            flex-shrink: 0;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .bg-blue {
-            background: linear-gradient(135deg, #4318ff 0%, #5e3aff 100%);
-        }
-
-        .bg-green {
-            background: linear-gradient(135deg, #05cd99 0%, #11deab 100%);
-        }
-
-        .bg-yellow {
-            background: linear-gradient(135deg, #ffb547 0%, #ffc107 100%);
-        }
-
-        .stat-info p {
-            color: #a3aed0;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            letter-spacing: 0.3px;
-        }
-
-        .stat-info h3 {
-            font-size: 28px;
-            color: #2b3674;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .stat-info .sub-text {
-            font-size: 12px;
-            font-weight: 500;
-            color: #8f9bba;
-        }
-
-        /* Table Design - Enhanced */
-        .table-wrapper {
-            background: #fff;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
-            border: 1px solid rgba(234, 236, 247, 0.8);
-        }
-
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f1f4f9;
-        }
-
-        .table-header h3 {
-            font-size: 18px;
-            color: #2b3674;
-            font-weight: 700;
-        }
-
-        .table-search {
-            padding: 10px 15px;
-            border: 1px solid #e0e5f2;
-            border-radius: 10px;
-            font-size: 14px;
-            width: 250px;
-            transition: all 0.3s ease;
-        }
-
-        .table-search:focus {
-            border-color: #4318FF;
-            box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
-            outline: none;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            text-align: left;
-            padding: 15px;
-            color: #a3aed0;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid #f1f4f9;
-            background: #f8faff;
-        }
-
-        td {
-            padding: 16px 15px;
-            color: #2b3674;
-            font-size: 14px;
-            font-weight: 500;
-            border-bottom: 1px solid #f1f4f9;
-            transition: background 0.2s ease;
-        }
-
-        tr:hover td {
-            background-color: #f8faff;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* Enhanced Status Pills */
-        .status {
-            padding: 6px 15px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 700;
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .status.confirmed {
-            background: rgba(5, 205, 153, 0.1);
-            color: #05cd99;
-            border: 1px solid rgba(5, 205, 153, 0.2);
-        }
-
-        .status.pending {
-            background: rgba(255, 181, 71, 0.1);
-            color: #ffb547;
-            border: 1px solid rgba(255, 181, 71, 0.2);
-        }
-
-        .status.cancelled {
-            background: rgba(238, 93, 80, 0.1);
-            color: #ee5d50;
-            border: 1px solid rgba(238, 93, 80, 0.2);
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-delete {
-            height: 36px;
-            width: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            background: rgba(238, 93, 80, 0.1);
-            color: #ee5d50;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .btn-delete:hover {
-            background: #ee5d50;
-            color: #fff;
-            transform: scale(1.05);
-        }
-
-        .btn-edit {
-            height: 36px;
-            width: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            background: rgba(67, 24, 255, 0.1);
-            color: #4318FF;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .btn-edit:hover {
-            background: #4318FF;
-            color: #fff;
-            transform: scale(1.05);
-        }
-
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #f1f4f9;
-        }
-
-        .pagination-info {
-            color: #a3aed0;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .pagination-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .pagination-btn {
-            padding: 8px 15px;
-            border: 1px solid #e0e5f2;
-            border-radius: 8px;
-            background: #fff;
-            color: #2b3674;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .pagination-btn:hover {
-            border-color: #4318FF;
-            color: #4318FF;
-        }
-
-        .pagination-btn.active {
-            background: #4318FF;
-            color: #fff;
-            border-color: #4318FF;
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a3aed0;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1200px) {
-            .card-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 240px;
-            }
-
-            .main-content {
-                margin-left: 240px;
-                width: calc(100% - 240px);
-                padding: 20px;
-            }
-
-            .card-container {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            .header-flex {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .table-search {
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="sidebar">
-        <div class="sidebar-brand">
-            <i class="fa-solid fa-heart-pulse"></i>
-            <h2>CarePulse</h2>
+<div class="row g-4 mb-4 mt-2">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold mb-1" style="color:var(--text); letter-spacing:-0.5px;">Welcome back,
+                <?= esc($_SESSION['full_name'] ?? $_SESSION['username']) ?>!</h4>
+            <p class="text-muted mb-0" style="font-size: 14px;">Here's what's happening today at CarePulse.</p>
         </div>
-
-        <a href="index.php" class="active"><i class="fa-solid fa-house"></i> Dashboard</a>
-        <a href="add_appointment.php"><i class="fa-solid fa-calendar-plus"></i> New Appt</a>
-        <a href="patients.php"><i class="fa-solid fa-hospital-user"></i> Patients</a>
-        <a href="doctors.php"><i class="fa-solid fa-user-doctor"></i> Doctors</a>
-
-        <div style="margin-top: auto; padding-top: 50px;">
-            <a href="logout.php" style="color: #ee5d50; background: rgba(238, 93, 80, 0.05);">
-                <i class="fa-solid fa-right-from-bracket"></i> Logout
+        <?php if (in_array($user_role, ['admin', 'receptionist'])): ?>
+            <a href="appointments.php" class="btn btn-primary px-4 py-2"
+                style="border-radius: 12px; font-size: 14px; box-shadow: 0 4px 12px var(--accent-glow);">
+                <i class="fas fa-plus me-2"></i>New Appointment
             </a>
+        <?php endif; ?>
+    </div>
+</div>
+
+<?php if ($user_role === 'doctor' && !$doctor_id): ?>
+    <div class="alert alert-warning border-0 shadow-sm mb-4 p-4" style="border-radius: 20px;">
+        <div class="d-flex align-items-center gap-3">
+            <div style="width: 48px; height: 48px; background: rgba(245, 158, 11, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #d97706;">
+                <i class="fas fa-user-md-slash fs-4"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-1" style="color: #92400e;">Medical Profile Not Found</h6>
+                <p class="mb-0 text-muted small">Your account is registered as a doctor, but it's not linked to a specific doctor profile. Please ensure your <strong>Full Name</strong> or <strong>Email</strong> matches exactly in the <i>Medical Directory</i>.</p>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<div class="row g-4 mb-4">
+    <!-- Stat 1 -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 border-0"
+            style="background: linear-gradient(145deg, #ffffff, #f8fafc); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-radius: 20px !important;">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted fw-bold mb-2 text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">
+                        <?= $user_role === 'doctor' ? 'My Appointments' : 'Total Appointments' ?></h6>
+                    <h2 class="fw-bolder mb-0" style="color: #1e293b; font-size: 32px; letter-spacing: -1px;">
+                        <?= $stats['total_appts'] ?></h2>
+                </div>
+                <div
+                    style="width: 54px; height: 54px; background: rgba(79, 70, 229, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--accent);">
+                    <i class="fas fa-calendar-check fs-4"></i>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="main-content">
-        <div class="header-flex">
-            <h1 style="font-weight: 700; font-size: 34px;">Well Come Doctor</h1>
-        </div>
-
-        <div class="card-container">
-            <div class="stat-card">
-                <div class="icon-box bg-blue"><i class="fa-solid fa-calendar-check"></i></div>
-                <div class="stat-info">
-                    <p>Total Appointments</p>
-                    <h3><?php
-                        $res = mysqli_query($conn, "SELECT COUNT(*) as total FROM appointments");
-                        echo mysqli_fetch_assoc($res)['total'];
-                        ?></h3>
+    <!-- Stat 2 -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 border-0"
+            style="background: linear-gradient(145deg, #ffffff, #f8fafc); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-radius: 20px !important;">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="fw-bold mb-2 text-uppercase"
+                        style="color: #d97706; font-size: 11px; letter-spacing: 0.5px;">Pending Approvals</h6>
+                    <h2 class="fw-bolder mb-0" style="color: #d97706; font-size: 32px; letter-spacing: -1px;">
+                        <?= $stats['pending_appts'] ?></h2>
                 </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="icon-box bg-green"><i class="fa-solid fa-user-md"></i></div>
-                <div class="stat-info">
-                    <p>Active Doctors</p>
-                    <h3>4</h3>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="icon-box bg-yellow"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                <div class="stat-info">
-                    <p>Pending Requests</p>
-                    <h3>05</h3>
+                <div
+                    style="width: 54px; height: 54px; background: rgba(245, 158, 11, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #d97706;">
+                    <i class="fas fa-clock fs-4"></i>
                 </div>
             </div>
         </div>
+    </div>
 
-        <h3 style="margin-bottom: 20px; font-weight: 700; color: #2b3674;">Recent Appointments</h3>
+    <?php if (in_array($user_role, ['admin', 'receptionist'])): ?>
+        <!-- Stat 3 -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card h-100 border-0"
+                style="background: linear-gradient(145deg, #ffffff, #f8fafc); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-radius: 20px !important;">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-muted fw-bold mb-2 text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">
+                            Total Patients</h6>
+                        <h2 class="fw-bolder mb-0" style="color: #1e293b; font-size: 32px; letter-spacing: -1px;">
+                            <?= $stats['total_patients'] ?></h2>
+                    </div>
+                    <div
+                        style="width: 54px; height: 54px; background: rgba(6, 182, 212, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #06b6d4;">
+                        <i class="fas fa-user-injured fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <div class="table-wrapper">
-            <table>
-                <thead>
+        <!-- Stat 4 -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card h-100 border-0"
+                style="background: linear-gradient(145deg, #ffffff, #f8fafc); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-radius: 20px !important;">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="fw-bold mb-2 text-uppercase"
+                            style="color: #059669; font-size: 11px; letter-spacing: 0.5px;">Available Doctors</h6>
+                        <h2 class="fw-bolder mb-0" style="color: #059669; font-size: 32px; letter-spacing: -1px;">
+                            <?= $stats['total_doctors'] ?></h2>
+                    </div>
+                    <div
+                        style="width: 54px; height: 54px; background: rgba(16, 185, 129, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #10b981;">
+                        <i class="fas fa-user-md fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php else: ?>
+        <!-- Doctor specific Stat 3 -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card h-100 border-0"
+                style="background: linear-gradient(145deg, #ffffff, #f8fafc); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-radius: 20px !important;">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="fw-bold mb-2 text-uppercase"
+                            style="color: #0284c7; font-size: 11px; letter-spacing: 0.5px;">Scheduled Today</h6>
+                        <h2 class="fw-bolder mb-0" style="color: #0284c7; font-size: 32px; letter-spacing: -1px;">
+                            <?= $stats['today_appts'] ?></h2>
+                    </div>
+                    <div
+                        style="width: 54px; height: 54px; background: rgba(14, 165, 233, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #0ea5e9;">
+                        <i class="fas fa-calendar-day fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6"></div>
+    <?php endif; ?>
+</div>
+
+<!-- Recent Activity -->
+<div class="card border-0 shadow-sm" style="border-radius: 20px !important;">
+    <div class="card-header bg-white border-0 p-4 pb-3 d-flex justify-content-between align-items-center rounded-top-4">
+        <h5 class="fw-bold mb-0 text-dark" style="letter-spacing: -0.3px;">Recent Activity</h5>
+        <a href="appointments.php" class="btn btn-sm btn-light px-3 fw-bold"
+            style="border-radius: 10px; color: var(--muted); background: #f1f5f9;">View All</a>
+    </div>
+    <div class="table-responsive px-2 pb-2">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="border-0">
+                <tr>
+                    <th class="ps-4" style="background: transparent;">Patient</th>
+                    <th style="background: transparent;">Doctor</th>
+                    <th style="background: transparent;">Date & Time</th>
+                    <th style="background: transparent;">Status</th>
+                    <th class="text-end pe-4" style="background: transparent;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $query = 'SELECT a.*, p.name as p_name, d.name as d_name FROM appointments a LEFT JOIN patients p ON a.patient_id = p.id LEFT JOIN doctors d ON a.doctor_id = d.id';
+                if ($user_role === 'doctor') {
+                    $query .= ' WHERE a.doctor_id = ?';
+                }
+                $query .= ' ORDER BY a.created_at DESC LIMIT 5';
+
+                $stmt = $pdo->prepare($query);
+                if ($user_role === 'doctor') {
+                    $stmt->execute([$doctor_id]);
+                } else {
+                    $stmt->execute();
+                }
+
+                $appts = $stmt->fetchAll();
+                if (empty($appts)): ?>
                     <tr>
-                        <th>Patient Name</th>
-                        <th>Assigned Doctor</th>
-                        <th>Appointment Date</th>
-                        <th>Status</th>
-                        <th style="text-align: center;">Action</th>
+                        <td colspan="5" class="text-center py-5">
+                            <div
+                                style="background: #f8fafc; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                <i class="fas fa-calendar-times" style="font-size: 32px; color: #cbd5e1;"></i>
+                            </div>
+                            <p class="text-muted fw-medium mb-0">No recent activity found.</p>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    $query = "SELECT * FROM appointments ORDER BY id DESC";
-                    $result = mysqli_query($conn, $query);
-                    while ($row = mysqli_fetch_assoc($result)) {
-                        $status_class = strtolower($row['status']);
-                        echo "<tr>
-                            <td><strong style='color:#1b2559;'>{$row['patient_name']}</strong></td>
-                            <td>Dr. {$row['doctor_name']}</td>
-                            <td>" . date('M d, Y', strtotime($row['app_date'])) . "</td>
-                            <td><span class='status $status_class'>{$row['status']}</span></td>
-                            <td style='display:flex; justify-content:center;'>
-                                <a href='index.php?delete_id={$row['id']}' class='btn-delete' onclick='return confirm(\"Are you sure you want to delete this record?\")'>
-                                    <i class='fa-solid fa-trash-can'></i>
+                <?php else:
+                    foreach ($appts as $appt): ?>
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div
+                                        style="width: 40px; height: 40px; background: #f1f5f9; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-weight: bold; font-size: 14px;">
+                                        <?= strtoupper(substr($appt['p_name'] ?? 'U', 0, 1)) ?>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold" style="color: #1e293b; font-size: 14px;">
+                                            <?= esc($appt['p_name'] ?? 'Unknown Patient') ?></div>
+                                        <div style="font-size: 12px; color: var(--muted);">#PAT-<?= $appt['patient_id'] ?></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-medium text-dark" style="font-size: 14px;"><i
+                                        class="fas fa-user-md me-2 text-muted"
+                                        style="font-size: 12px;"></i><?= esc($appt['d_name'] ?? 'Unassigned') ?></div>
+                            </td>
+                            <td>
+                                <div class="fw-medium text-dark" style="font-size: 14px;">
+                                    <?= date('M j, Y', strtotime($appt['app_date'])) ?></div>
+                                <div style="font-size: 12px; color: var(--muted);"><i
+                                        class="far fa-clock me-1"></i><?= date('h:i A', strtotime($appt['app_time'])) ?></div>
+                            </td>
+                            <td>
+                                <?php
+                                $badge_class = match ($appt['status']) {
+                                    'pending' => 'warning',
+                                    'confirmed' => 'success',
+                                    'completed' => 'info',
+                                    'cancelled' => 'danger',
+                                    default => 'secondary'
+                                };
+                                ?>
+                                <span class="badge bg-<?= $badge_class ?>"
+                                    style="background: rgba(var(--bs-<?= $badge_class ?>-rgb), 0.1) !important; color: var(--bs-<?= $badge_class ?>) !important; font-size: 12px; padding: 6px 12px; border-radius: 8px;">
+                                    <?= ucfirst($appt['status']) ?>
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="appointment_details.php?id=<?= $appt['id'] ?>" class="btn btn-sm btn-light"
+                                    style="border-radius: 8px; width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); transition: all 0.2s;">
+                                    <i class="fas fa-arrow-right"></i>
                                 </a>
                             </td>
-                        </tr>";
-                    }
-                    ?>
-                </tbody>
-            </table>
-        </div>
+                        </tr>
+                    <?php endforeach;
+                endif; ?>
+            </tbody>
+        </table>
     </div>
-</body>
+</div>
 
-</html>
+<?php require 'includes/footer.php'; ?>
