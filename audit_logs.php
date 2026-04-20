@@ -16,7 +16,7 @@ if (isset($_POST['clear_logs']) && $_SESSION['role'] === 'admin') {
 }
 
 // Fetch Logs with Pagination
-$page = (int)($_GET['page'] ?? 1);
+$page = (int) ($_GET['page'] ?? 1);
 $per_page = 50;
 $offset = ($page - 1) * $per_page;
 
@@ -33,7 +33,7 @@ $total_pages = ceil($total_logs / $per_page);
         <h3 class="fw-bold"><i class="fas fa-shield-alt text-dark me-2"></i>Security Audit Logs</h3>
     </div>
     <div class="col-md-6 text-end">
-        <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to clear ALL logs? This cannot be undone.')">
+        <form method="POST" class="d-inline" onsubmit="return confirm ">
             <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
             <button type="submit" name="clear_logs" class="btn btn-outline-danger rounded-pill px-4">
                 <i class="fas fa-trash-alt me-2"></i>Clear All Logs
@@ -88,18 +88,22 @@ $total_pages = ceil($total_logs / $per_page);
                                     <small class="d-block text-muted">ID: <?= $l['record_id'] ?></small>
                                 </td>
                                 <td style="max-width: 300px;">
-                                    <?php $old_val = $l['old_value'] ?? null; $new_val = $l['new_value'] ?? null; ?>
+                                    <?php $old_val = $l['old_value'] ?? null;
+                                    $new_val = $l['new_value'] ?? null; ?>
                                     <?php if ($old_val || $new_val): ?>
-                                        <button class="btn btn-sm btn-link text-decoration-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#data-<?= $l['id'] ?>">
+                                        <button class="btn btn-sm btn-link text-decoration-none p-0" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#data-<?= $l['id'] ?>">
                                             View Details
                                         </button>
                                         <div class="collapse mt-2" id="data-<?= $l['id'] ?>">
                                             <div class="bg-light p-2 rounded small border">
                                                 <?php if ($old_val): ?>
-                                                    <strong>Before:</strong><pre class="mb-1" style="font-size: 10px;"><?= esc($old_val) ?></pre>
+                                                    <strong>Before:</strong>
+                                                    <pre class="mb-1" style="font-size: 10px;"><?= esc($old_val) ?></pre>
                                                 <?php endif; ?>
                                                 <?php if ($new_val): ?>
-                                                    <strong>After:</strong><pre class="mb-0" style="font-size: 10px;"><?= esc($new_val) ?></pre>
+                                                    <strong>After:</strong>
+                                                    <pre class="mb-0" style="font-size: 10px;"><?= esc($new_val) ?></pre>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
@@ -118,15 +122,15 @@ $total_pages = ceil($total_logs / $per_page);
 </div>
 
 <?php if ($total_pages > 1): ?>
-<nav class="mt-4">
-    <ul class="pagination justify-content-center">
-        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-            <li class="page-item <?= $i == $page ? 'active' : '' ?>">
-                <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
-            </li>
-        <?php endfor; ?>
-    </ul>
-</nav>
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                <li class="page-item <?= $i == $page ? 'active' : '' ?>">
+                    <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                </li>
+            <?php endfor; ?>
+        </ul>
+    </nav>
 <?php endif; ?>
 
 <?php require_once 'includes/footer.php'; ?>
