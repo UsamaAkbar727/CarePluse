@@ -12,16 +12,31 @@ if (isset($_POST['login'])) {
         $error = 'Please fill all fields.';
     } else {
         $pdo = get_db_pdo();
-        $stmt = $pdo->prepare('SELECT id, username, password, role, email, full_name FROM users WHERE username = ? AND is_active = 1');
-        $stmt->execute([trim($_POST['username'])]);
+        // Check both username and email
+        $stmt = $pdo->prepare('SELECT id, username, password, role, email, full_name, is_active FROM users WHERE username = ? OR email = ?');
+        $stmt->execute([trim($_POST['username']), trim($_POST['username'])]);
         $user = $stmt->fetch();
 
-        if ($user && password_verify($_POST['password'], $user['password'])) {
+        if (!$user) {
+            $_SESSION['login_error'] = 'User ' . esc($_POST['username']) . ' not found.';
+            header("Location: login.php");
+            exit();
+        } elseif ($user['is_active'] == 0) {
+            $_SESSION['login_error'] = 'This account is currently inactive.';
+            header("Location: login.php");
+            exit();
+        } elseif (!password_verify(trim($_POST['password']), $user['password'])) {
+            $_SESSION['login_error'] = 'Incorrect password. Please try again.';
+            header("Location: login.php");
+            exit();
+        } else {
+            // Success
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['full_name'] = $user['full_name'];
             $_SESSION['email'] = $user['email'];
+            $_SESSION['avatar'] = $user['avatar'] ?? null;
             $_SESSION['csrf_token'] = generate_csrf_token();
             session_regenerate_id(true);
 
@@ -36,10 +51,6 @@ if (isset($_POST['login'])) {
                 default => 'index.php'
             };
             header("Location: $redirect");
-            exit();
-        } else {
-            $_SESSION['login_error'] = 'Invalid username or password.';
-            header("Location: login.php");
             exit();
         }
     }
@@ -207,6 +218,30 @@ $token = generate_csrf_token();
         .password-toggle-icon:focus {
             outline: none;
         }
+
+        /* Demo credentials styling */
+        .demo-cred-btn {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .demo-cred-btn:hover {
+            background: var(--accent-glow);
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .text-indigo {
+            color: #4f46e5;
+        }
     </style>
 </head>
 <body>
@@ -261,6 +296,21 @@ $token = generate_csrf_token();
                 </button>
             </form>
 
+            <div class="mt-4 pt-3 border-top">
+                <p class="text-center text-muted mb-2" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Quick Demo Accounts (Click to Fill)</p>
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <button type="button" class="btn demo-cred-btn" data-username="admin" data-password="Admin@123">
+                        <span class="d-flex align-items-center gap-2"><i class="fas fa-user-shield text-indigo"></i> Admin</span>
+                    </button>
+                    <button type="button" class="btn demo-cred-btn" data-username="doctor1" data-password="password">
+                        <span class="d-flex align-items-center gap-2"><i class="fas fa-user-md text-primary"></i> Doctor</span>
+                    </button>
+                    <button type="button" class="btn demo-cred-btn" data-username="recep1" data-password="password">
+                        <span class="d-flex align-items-center gap-2"><i class="fas fa-user-tag text-success"></i> Receptionist</span>
+                    </button>
+                </div>
+            </div>
+
         </div>
         
         <div class="text-center mt-4">
@@ -303,6 +353,32 @@ $token = generate_csrf_token();
                         errorAlert.style.display = 'none';
                     }, 300);
                 }
+            });
+        });
+
+        // Auto-fill demo credentials
+        const demoBtns = document.querySelectorAll('.demo-cred-btn');
+        const usernameInput = document.querySelector('#username');
+        
+        demoBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const username = this.getAttribute('data-username');
+                const password = this.getAttribute('data-password');
+                
+                if (usernameInput) {
+                    usernameInput.value = username;
+                    usernameInput.dispatchEvent(new Event('input'));
+                }
+                if (passwordInput) {
+                    passwordInput.value = password;
+                    passwordInput.dispatchEvent(new Event('input'));
+                }
+
+                // Add a visual indicator/animation on click
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = 'none';
+                }, 150);
             });
         });
     </script>

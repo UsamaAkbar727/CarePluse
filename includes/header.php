@@ -35,6 +35,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <!-- Bootstrap 5 + FA -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     <style>
         /* ==================== DESIGN TOKENS ==================== */
@@ -435,11 +436,122 @@ $current_page = basename($_SERVER['PHP_SELF']);
         .password-toggle-icon:hover {
             color: var(--accent);
         }
+
+        /* ==================== DARK MODE OVERRIDES ==================== */
+        body.dark-mode {
+            --bg:          #0f172a;
+            --card-bg:     #1e293b;
+            --text:        #f8fafc;
+            --muted:       #94a3b8;
+            --border-color:#334155;
+        }
+        body.dark-mode .text-muted {
+            color: var(--muted) !important;
+        }
+        body.dark-mode .card,
+        body.dark-mode .modal-content,
+        body.dark-mode .bg-white {
+            background: var(--card-bg) !important;
+            color: var(--text) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+        }
+        body.dark-mode .card-header,
+        body.dark-mode .modal-header,
+        body.dark-mode .modal-footer {
+            background-color: var(--card-bg) !important;
+            border-color: #334155 !important;
+            color: var(--text) !important;
+        }
+        body.dark-mode .table,
+        body.dark-mode th,
+        body.dark-mode td,
+        body.dark-mode tr {
+            background-color: var(--card-bg) !important;
+            color: var(--text) !important;
+            border-color: #334155 !important;
+        }
+        body.dark-mode .table tbody tr:hover td {
+            background-color: #334155 !important;
+        }
+        body.dark-mode .bg-light,
+        body.dark-mode .bg-light-subtle,
+        body.dark-mode .table thead,
+        body.dark-mode .table thead th {
+            background-color: #0f172a !important;
+            color: var(--text) !important;
+        }
+        body.dark-mode .btn-light {
+            background-color: #334155 !important;
+            color: var(--text) !important;
+            border-color: #475569 !important;
+        }
+        body.dark-mode .btn-light:hover {
+            background-color: #475569 !important;
+        }
+        body.dark-mode .badge.bg-light {
+            background-color: #334155 !important;
+            color: var(--text) !important;
+        }
+        body.dark-mode .form-control,
+        body.dark-mode .form-select,
+        body.dark-mode textarea {
+            background-color: #0f172a !important;
+            color: var(--text) !important;
+            border-color: #334155 !important;
+        }
+        body.dark-mode .form-control:focus,
+        body.dark-mode .form-select:focus {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 3px rgba(79,70,229,.2) !important;
+        }
+        body.dark-mode .dropdown-menu {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+        }
+        body.dark-mode .dropdown-item {
+            color: var(--text) !important;
+        }
+        body.dark-mode .dropdown-item:hover {
+            background-color: #334155 !important;
+        }
+        body.dark-mode .dropdown-divider {
+            border-color: #334155 !important;
+        }
+        body.dark-mode .breadcrumb-item.active {
+            color: var(--text) !important;
+        }
+        body.dark-mode .bg-light,
+        body.dark-mode .p-3.bg-light.rounded-4 {
+            background-color: #0f172a !important;
+            border-color: #334155 !important;
+        }
+        body.dark-mode #topbar {
+            background-color: rgba(30, 41, 59, 0.9) !important;
+            border-bottom-color: #334155 !important;
+        }
+        body.dark-mode .text-dark {
+            color: var(--text) !important;
+        }
+        body.dark-mode .demo-cred-btn {
+            background-color: #0f172a !important;
+            border-color: #334155 !important;
+            color: var(--text) !important;
+        }
+        body.dark-mode .demo-cred-btn:hover {
+            background-color: var(--accent-glow) !important;
+            border-color: var(--accent) !important;
+            color: var(--accent) !important;
+        }
     </style>
 </head>
 <body>
 
-<?php if ($user_role !== 'guest'): ?>
+<?php if ($user_role !== 'guest'): 
+    $global_avatar_url = !empty($_SESSION['avatar']) && file_exists(__DIR__ . '/../' . $_SESSION['avatar'])
+        ? $_SESSION['avatar']
+        : 'https://ui-avatars.com/api/?name=' . urlencode($_SESSION['username'] ?? 'U') . '&background=4f46e5&color=fff&size=64';
+?>
 <!-- ===================== SIDEBAR ===================== -->
 <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 <aside id="sidebar">
@@ -488,7 +600,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <!-- User mini card at bottom of sidebar -->
     <div style="padding: 12px; border-top: 1px solid rgba(255,255,255,.07); margin-top: auto;">
         <a href="profile.php" style="display:flex;align-items:center;gap:10px;text-decoration:none;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);transition:var(--transition);" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.05)'">
-            <img src="https://ui-avatars.com/api/?name=<?= urlencode($_SESSION['username'] ?? 'U') ?>&background=4f46e5&color=fff&size=64" width="36" height="36" style="border-radius:9px;object-fit:cover;" alt="">
+            <img src="<?= $global_avatar_url ?>" width="36" height="36" style="border-radius:9px;object-fit:cover;" alt="">
             <div style="flex:1;min-width:0;">
                 <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?= esc($_SESSION['full_name'] ?? $_SESSION['username'] ?? 'User') ?></div>
                 <div style="font-size:11px;color:rgba(255,255,255,.4);"><?= ucfirst($user_role) ?></div>
@@ -531,10 +643,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </ul>
     </div>
 
+    <!-- Theme Switcher -->
+    <button class="topbar-btn me-2" id="darkModeToggle" title="Toggle Theme" style="border: none; background: transparent; cursor: pointer;">
+        <i class="fas fa-moon" id="themeIcon"></i>
+    </button>
+
     <!-- User Menu -->
     <div class="dropdown">
         <button class="topbar-user" data-bs-toggle="dropdown" aria-expanded="false">
-            <img src="https://ui-avatars.com/api/?name=<?= urlencode($_SESSION['username'] ?? 'U') ?>&background=4f46e5&color=fff&size=64" alt="">
+            <img src="<?= $global_avatar_url ?>" alt="" style="object-fit: cover;">
             <div class="user-info d-none d-sm-block">
                 <div class="user-name"><?= esc($_SESSION['full_name'] ?? $_SESSION['username'] ?? 'User') ?></div>
                 <div class="user-role"><?= ucfirst($user_role) ?></div>

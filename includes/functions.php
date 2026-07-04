@@ -43,9 +43,48 @@ function get_db_pdo()
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ]);
+        
+        // Ensure default admin exists
+        ensure_admin_exists($pdo);
+        
         return $pdo;
     } catch (PDOException $e) {
         die('DB Connection failed: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Automatically creates the default admin user if it doesn't exist
+ */
+function ensure_admin_exists($pdo)
+{
+    $email = 'admin@carepulse.com';
+    $password = 'Admin@123';
+    $hashed = password_hash($password, PASSWORD_DEFAULT);
+    
+    try {
+        // Fix schema if necessary (hashes need space!)
+        $pdo->exec("ALTER TABLE users MODIFY COLUMN password VARCHAR(255) NOT NULL");
+        
+        // Look for the admin by email
+        $stmt = $pdo->prepare('SELECT id, password FROM users WHERE email = ?');
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            // 1. Create if missing
+            $stmt = $pdo->prepare('INSERT INTO users (username, password, role, email, full_name) VALUES ("admin", ?, "admin", ?, "System Admin")');
+            $stmt->execute([$hashed, $email]);
+        } else {
+            // 2. Update existing to ensure the password is Admin@123 as requested
+            // We only do this if it's the system admin email to avoid overwriting other accounts
+            if (!password_verify($password, $user['password'])) {
+                $stmt = $pdo->prepare('UPDATE users SET password = ?, username = "admin" WHERE id = ?');
+                $stmt->execute([$hashed, $user['id']]);
+            }
+        }
+    } catch (Exception $e) {
+        // Silently fail during initial DB setup
     }
 }
 
@@ -200,15 +239,52 @@ function display_flash() {
     if (isset($_SESSION['flash'])) {
         $f = $_SESSION['flash'];
         unset($_SESSION['flash']);
-        echo "<div class='alert alert-{$f['type']} alert-dismissible fade show' role='alert'>
-                {$f['message']}
-                <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>
-              </div>";
+        
+        $type = $f['type'];
+        // Map bootstrap warning/danger to SweetAlert2 icon types
+        $icon = match ($type) {
+            'danger' => 'error',
+            'warning' => 'warning',
+            'info' => 'info',
+            default => 'success'
+        };
+        
+        $message = addslashes(htmlspecialchars_decode((string)$f['message'], ENT_QUOTES));
+        
+        echo "<script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                });
+                Toast.fire({
+                    icon: '{$icon}',
+                    title: '{$message}'
+                });
+            });
+        </script>";
     }
 }
 
 function flash_has_errors() {
     return isset($_SESSION['flash']) && $_SESSION['flash']['type'] === 'danger';
+}
+
+/**
+ * Format a doctor name to ensure it has exactly one "Dr." prefix
+ */
+function format_doctor_name($name) {
+    if (empty($name)) return '';
+    // Strip leading "Dr." or "Dr " (case-insensitive)
+    $clean_name = preg_replace('/^(Dr\.\s*|Dr\s+)/i', '', trim($name));
+    return 'Dr. ' . $clean_name;
 }
 
 

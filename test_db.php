@@ -22,6 +22,25 @@ try {
         echo '<p>📊 Appointments: ' . $stmt->fetch()['cnt'] . ' records</p>';
     }
 
+    if (in_array('users', $tables)) {
+        $stmt = $pdo->query('SELECT id, username, email, role, password, is_active FROM users');
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo '<h3>👥 Users Table Content:</h3>';
+        echo '<table border="1" cellpadding="5" style="border-collapse: collapse;">';
+        echo '<tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Active</th><th>Hash</th></tr>';
+        foreach ($users as $u) {
+            echo '<tr>';
+            echo '<td>' . htmlspecialchars($u['id']) . '</td>';
+            echo '<td>' . htmlspecialchars($u['username']) . '</td>';
+            echo '<td>' . htmlspecialchars($u['email']) . '</td>';
+            echo '<td>' . htmlspecialchars($u['role']) . '</td>';
+            echo '<td>' . htmlspecialchars($u['is_active']) . '</td>';
+            echo '<td><code>' . htmlspecialchars($u['password']) . '</code></td>';
+            echo '</tr>';
+        }
+        echo '</table>';
+    }
+
     echo '<hr><p><a href="test_db.php?run_import=1">🔄 Re-run database.sql import?</a> (backup first!)</p>';
 
     if (isset($_GET['run_import']) && $_GET['run_import'] == 1) {

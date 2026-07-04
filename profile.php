@@ -5,21 +5,68 @@ require_once 'includes/header.php';
 $pdo = get_db_pdo();
 $user_id = $_SESSION['user_id'];
 
-// Handle Password Update
+// Auto-add avatar column if it doesn't exist
+try {
+    $pdo->query("SELECT avatar FROM users LIMIT 1");
+} catch (Exception $e) {
+    $pdo->exec("ALTER TABLE users ADD COLUMN avatar VARCHAR(255) DEFAULT NULL");
+}
+
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$user_id]);
+$user = $stmt->fetch();
+
+// Handle Profile Update
 if (isset($_POST['update_profile'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         set_flash('Invalid security token.', 'danger');
     } else {
-        $full_name = trim($_POST['full_name']);
-        $email = trim($_POST['email']);
-        $new_password = $_POST['new_password'];
-        $confirm_password = $_POST['confirm_password'];
+        $full_name = trim($_POST['full_name'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $new_password = $_POST['new_password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
+        $avatar_path = $user['avatar'] ?? null;
+
+        // Handle Avatar File Upload
+        if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+            $file_tmp = $_FILES['avatar']['tmp_name'];
+            $file_name = $_FILES['avatar']['name'];
+            $file_size = $_FILES['avatar']['size'];
+            $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+
+            $allowed_exts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            if (!in_array($file_ext, $allowed_exts)) {
+                set_flash('Invalid avatar file type. Allowed: JPG, PNG, GIF, WebP.', 'danger');
+                header('Location: profile.php');
+                exit();
+            }
+
+            if ($file_size > 2 * 1024 * 1024) { // 2MB
+                set_flash('Avatar image must be smaller than 2MB.', 'danger');
+                header('Location: profile.php');
+                exit();
+            }
+
+            // Generate unique path
+            $upload_dir = 'uploads/avatars/';
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0755, true);
+            }
+
+            // Delete old avatar file if it exists
+            if ($avatar_path && file_exists($avatar_path)) {
+                unlink($avatar_path);
+            }
+
+            $avatar_path = $upload_dir . uniqid('avatar_', true) . '.' . $file_ext;
+            move_uploaded_file($file_tmp, $avatar_path);
+        }
 
         if ($new_password && $new_password !== $confirm_password) {
             set_flash('Passwords do not match!', 'danger');
         } else {
-            $sql = "UPDATE users SET full_name = ?, email = ?";
-            $params = [$full_name, $email];
+            $sql = "UPDATE users SET full_name = ?, email = ?, avatar = ?";
+            $params = [$full_name, $email, $avatar_path];
 
             if ($new_password) {
                 $sql .= ", password = ?";
@@ -33,6 +80,7 @@ if (isset($_POST['update_profile'])) {
             if ($stmt->execute($params)) {
                 $_SESSION['full_name'] = $full_name;
                 $_SESSION['email'] = $email;
+                $_SESSION['avatar'] = $avatar_path;
                 unset($_SESSION['doctor_id']);
                 set_flash('Profile updated successfully!');
             }
@@ -41,10 +89,6 @@ if (isset($_POST['update_profile'])) {
     header('Location: profile.php');
     exit();
 }
-
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->execute([$user_id]);
-$user = $stmt->fetch();
 ?>
 
 <div class="row justify-content-center mt-3">
@@ -52,7 +96,12 @@ $user = $stmt->fetch();
         <div class="card border-0 mb-4" style="border-radius: 20px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.04); overflow: hidden;">
             <div class="p-5" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));">
                 <div class="d-flex align-items-center gap-4">
-                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($user['username']) ?>&size=80&background=ffffff&color=4f46e5" class="rounded-circle border border-white border-4 shadow-sm" width="80" alt="Avatar">
+                    <?php
+                    $profile_avatar_url = !empty($user['avatar']) && file_exists($user['avatar'])
+                        ? $user['avatar']
+                        : "https://ui-avatars.com/api/?name=" . urlencode($user['username']) . "&size=80&background=ffffff&color=4f46e5";
+                    ?>
+                    <img src="<?= $profile_avatar_url ?>" class="rounded-circle border border-white border-4 shadow-sm" width="80" height="80" style="object-fit: cover;" alt="Avatar">
                     <div class="text-white">
                         <h3 class="mb-1 fw-bold" style="letter-spacing: -0.5px;"><?= esc($user['full_name'] ?: $user['username']) ?></h3>
                         <p class="mb-0" style="opacity: 0.85; font-size: 14px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">
@@ -63,9 +112,15 @@ $user = $stmt->fetch();
             </div>
             
             <div class="card-body p-4 p-md-5 bg-white">
-                <form method="POST">
+                <form method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
                     
+                    <div class="mb-4">
+                        <label class="form-label" style="font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Profile Picture</label>
+                        <input type="file" name="avatar" class="form-control" accept="image/*" style="padding: 10px 16px;">
+                        <div class="form-text mt-2 ms-1" style="font-size: 12px;">Supported formats: JPG, PNG, GIF, WebP. Max size: 2MB.</div>
+                    </div>
+
                     <div class="mb-4">
                         <label class="form-label" style="font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Username</label>
                         <input type="text" class="form-control" value="<?= esc($user['username']) ?>" disabled style="background-color: #f8fafc; color: #94a3b8; border-color: #f1f5f9; padding: 12px 16px;">

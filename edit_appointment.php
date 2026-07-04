@@ -87,7 +87,7 @@ $patients = $pdo->query("SELECT id, name, phone FROM patients ORDER BY name")->f
                             <select name="doctor_id" class="form-select rounded-3 py-2" required>
                                 <?php foreach ($doctors as $d): ?>
                                     <option value="<?= $d['id'] ?>" <?= $d['id'] == $appt['doctor_id'] ? 'selected' : '' ?>>
-                                        Dr. <?= esc($d['name']) ?> - <?= esc($d['specialization']) ?>
+                                        <?= esc(format_doctor_name($d['name'])) ?> - <?= esc($d['specialization']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>

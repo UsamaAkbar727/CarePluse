@@ -88,7 +88,7 @@ $appointments = $stmt->fetchAll();
                                     <small class="text-muted"><?= esc($a['p_phone']) ?></small>
                                 </td>
                                 <td>
-                                    <div class="fw-medium">Dr. <?= esc($a['d_name']) ?></div>
+                                    <div class="fw-medium"><?= esc(format_doctor_name($a['d_name'])) ?></div>
                                 </td>
                                 <td>
                                     <div><?= date('M j, Y', strtotime($a['app_date'])) ?></div>

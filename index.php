@@ -36,6 +36,61 @@ if ($user_role === 'admin' || $user_role === 'receptionist') {
     $stmt->execute([$doctor_id]);
     $stats['today_appts'] = $stmt->fetchColumn();
 }
+
+// --- PREPARE DATA FOR CHARTS ---
+$safe_doctor_id = isset($doctor_id) ? ($doctor_id ?: 0) : 0;
+
+// Past 7 Days Trend
+$trend_data = [];
+for ($i = 6; $i >= 0; $i--) {
+    $date = date('Y-m-d', strtotime("-$i days"));
+    $label = date('D (M j)', strtotime("-$i days"));
+    $trend_data[$date] = [
+        'label' => $label,
+        'count' => 0
+    ];
+}
+
+$startDate = date('Y-m-d', strtotime('-6 days'));
+$endDate = date('Y-m-d');
+
+if ($user_role === 'admin' || $user_role === 'receptionist') {
+    $trend_stmt = $pdo->prepare('SELECT DATE(app_date) as date, COUNT(*) as count FROM appointments WHERE app_date BETWEEN ? AND ? GROUP BY DATE(app_date)');
+    $trend_stmt->execute([$startDate, $endDate]);
+} else { // Doctor role
+    $trend_stmt = $pdo->prepare('SELECT DATE(app_date) as date, COUNT(*) as count FROM appointments WHERE doctor_id = ? AND app_date BETWEEN ? AND ? GROUP BY DATE(app_date)');
+    $trend_stmt->execute([$safe_doctor_id, $startDate, $endDate]);
+}
+
+foreach ($trend_stmt->fetchAll() as $row) {
+    if (isset($trend_data[$row['date']])) {
+        $trend_data[$row['date']]['count'] = (int)$row['count'];
+    }
+}
+
+$chart_trend_labels = [];
+$chart_trend_values = [];
+foreach ($trend_data as $date => $info) {
+    $chart_trend_labels[] = $info['label'];
+    $chart_trend_values[] = $info['count'];
+}
+
+// Specialization Distribution / Status Breakdown
+if ($user_role === 'admin' || $user_role === 'receptionist') {
+    $spec_stmt = $pdo->query('SELECT d.specialization, COUNT(*) as count FROM appointments a JOIN doctors d ON a.doctor_id = d.id GROUP BY d.specialization');
+    $spec_data = $spec_stmt->fetchAll();
+} else { // Doctor role
+    $spec_stmt = $pdo->prepare('SELECT status as specialization, COUNT(*) as count FROM appointments WHERE doctor_id = ? GROUP BY status');
+    $spec_stmt->execute([$safe_doctor_id]);
+    $spec_data = $spec_stmt->fetchAll();
+}
+
+$chart_spec_labels = [];
+$chart_spec_values = [];
+foreach ($spec_data as $row) {
+    $chart_spec_labels[] = ucfirst($row['specialization']);
+    $chart_spec_values[] = (int)$row['count'];
+}
 ?>
 
 <div class="row g-4 mb-4 mt-2">
@@ -77,7 +132,7 @@ if ($user_role === 'admin' || $user_role === 'receptionist') {
                 <div>
                     <h6 class="text-muted fw-bold mb-2 text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">
                         <?= $user_role === 'doctor' ? 'My Appointments' : 'Total Appointments' ?></h6>
-                    <h2 class="fw-bolder mb-0" style="color: #1e293b; font-size: 32px; letter-spacing: -1px;">
+                    <h2 class="fw-bolder mb-0" style="font-size: 32px; letter-spacing: -1px;">
                         <?= $stats['total_appts'] ?></h2>
                 </div>
                 <div
@@ -116,7 +171,7 @@ if ($user_role === 'admin' || $user_role === 'receptionist') {
                     <div>
                         <h6 class="text-muted fw-bold mb-2 text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">
                             Total Patients</h6>
-                        <h2 class="fw-bolder mb-0" style="color: #1e293b; font-size: 32px; letter-spacing: -1px;">
+                        <h2 class="fw-bolder mb-0" style="font-size: 32px; letter-spacing: -1px;">
                             <?= $stats['total_patients'] ?></h2>
                     </div>
                     <div
@@ -166,6 +221,57 @@ if ($user_role === 'admin' || $user_role === 'receptionist') {
         </div>
         <div class="col-lg-3 col-md-6"></div>
     <?php endif; ?>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-4 mb-4">
+    <!-- Appointments Trend Chart -->
+    <div class="col-lg-8 col-12">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 20px !important;">
+            <div class="card-header bg-white border-0 p-4 pb-0 rounded-top-4">
+                <h5 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.3px;">
+                    <?= $user_role === 'doctor' ? 'My Appointment Activity' : 'Weekly Appointment Volume' ?>
+                </h5>
+                <p class="text-muted small mb-0">Total volume over the last 7 days</p>
+            </div>
+            <div class="card-body p-4" style="position: relative; min-height: 320px;">
+                <?php if (array_sum($chart_trend_values) === 0): ?>
+                    <div class="h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                        <div style="background: #f8fafc; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 12px auto;">
+                            <i class="fas fa-chart-line" style="font-size: 24px; color: #cbd5e1;"></i>
+                        </div>
+                        <p class="text-muted small fw-medium mb-0">No appointment activity in the last 7 days</p>
+                    </div>
+                <?php else: ?>
+                    <canvas id="trendChart"></canvas>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Distribution Chart -->
+    <div class="col-lg-4 col-12">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 20px !important;">
+            <div class="card-header bg-white border-0 p-4 pb-0 rounded-top-4">
+                <h5 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.3px;">
+                    <?= $user_role === 'doctor' ? 'Status Breakdown' : 'Bookings by Speciality' ?>
+                </h5>
+                <p class="text-muted small mb-0">Overall ratio and distribution</p>
+            </div>
+            <div class="card-body p-4 d-flex align-items-center justify-content-center" style="position: relative; min-height: 320px;">
+                <?php if (empty($chart_spec_values)): ?>
+                    <div class="text-center py-4">
+                        <div style="background: #f8fafc; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 12px auto;">
+                            <i class="fas fa-chart-pie" style="font-size: 24px; color: #cbd5e1;"></i>
+                        </div>
+                        <p class="text-muted small fw-medium mb-0">No booking data available</p>
+                    </div>
+                <?php else: ?>
+                    <canvas id="distributionChart"></canvas>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Recent Activity -->
@@ -267,5 +373,124 @@ if ($user_role === 'admin' || $user_role === 'receptionist') {
         </table>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        <?php if (array_sum($chart_trend_values) > 0): ?>
+        // Trend Chart (Line Chart)
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        
+        // Create a beautiful gradient for the primary line
+        const primaryGradient = trendCtx.createLinearGradient(0, 0, 0, 300);
+        primaryGradient.addColorStop(0, 'rgba(79, 70, 229, 0.3)');
+        primaryGradient.addColorStop(1, 'rgba(79, 70, 229, 0)');
+
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: <?= json_encode($chart_trend_labels) ?>,
+                datasets: [{
+                    label: 'Appointments',
+                    data: <?= json_encode($chart_trend_values) ?>,
+                    borderColor: '#4f46e5',
+                    borderWidth: 3,
+                    backgroundColor: primaryGradient,
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: '#4f46e5',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        padding: 12,
+                        cornerRadius: 10,
+                        backgroundColor: '#0f172a',
+                        titleFont: { family: 'Inter', weight: 'bold' },
+                        bodyFont: { family: 'Inter' }
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { color: '#f1f5f9' },
+                        ticks: {
+                            stepSize: 1,
+                            font: { family: 'Inter', size: 11 },
+                            color: '#64748b'
+                        },
+                        border: { dash: [5, 5] }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { family: 'Inter', size: 11 },
+                            color: '#64748b'
+                        }
+                    }
+                }
+            }
+        });
+        <?php endif; ?>
+
+        <?php if (!empty($chart_spec_values)): ?>
+        // Distribution Chart (Doughnut Chart)
+        const distCtx = document.getElementById('distributionChart').getContext('2d');
+        
+        const colors = [
+            '#4f46e5', // Primary Accent
+            '#10b981', // Success
+            '#f59e0b', // Warning
+            '#06b6d4', // Info
+            '#ec4899', // Pink
+            '#8b5cf6', // Purple
+            '#ef4444'  // Danger
+        ];
+
+        new Chart(distCtx, {
+            type: 'doughnut',
+            data: {
+                labels: <?= json_encode($chart_spec_labels) ?>,
+                datasets: [{
+                    data: <?= json_encode($chart_spec_values) ?>,
+                    backgroundColor: colors,
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { family: 'Inter', size: 11 },
+                            boxWidth: 10,
+                            padding: 15,
+                            color: '#475569'
+                        }
+                    },
+                    tooltip: {
+                        padding: 12,
+                        cornerRadius: 10,
+                        backgroundColor: '#0f172a',
+                        titleFont: { family: 'Inter', weight: 'bold' },
+                        bodyFont: { family: 'Inter' }
+                    }
+                }
+            }
+        });
+        <?php endif; ?>
+    });
+</script>
 
 <?php require 'includes/footer.php'; ?>

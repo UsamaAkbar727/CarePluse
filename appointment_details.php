@@ -38,6 +38,51 @@ if ($_SESSION['role'] === 'doctor') {
     }
 }
 
+// Auto-create prescriptions table if not exists
+$pdo->exec("
+    CREATE TABLE IF NOT EXISTS prescriptions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        appointment_id INT UNIQUE NOT NULL,
+        patient_id INT NOT NULL,
+        doctor_id INT NOT NULL,
+        symptoms TEXT,
+        diagnosis TEXT,
+        medications TEXT,
+        instructions TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE
+    )
+");
+
+// Fetch prescription if exists
+$pres_stmt = $pdo->prepare('SELECT * FROM prescriptions WHERE appointment_id = ?');
+$pres_stmt->execute([$id]);
+$prescription = $pres_stmt->fetch();
+
+// Save/Update Prescription
+if (isset($_POST['save_prescription']) && $_SESSION['role'] === 'doctor') {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $_SESSION['flash_message'] = ['text' => 'Invalid security token.', 'type' => 'danger'];
+    } else {
+        $symptoms = trim($_POST['symptoms'] ?? '');
+        $diagnosis = trim($_POST['diagnosis'] ?? '');
+        $medications = trim($_POST['medications'] ?? '');
+        $instructions = trim($_POST['instructions'] ?? '');
+        
+        if ($prescription) {
+            $stmt = $pdo->prepare('UPDATE prescriptions SET symptoms = ?, diagnosis = ?, medications = ?, instructions = ? WHERE appointment_id = ?');
+            $stmt->execute([$symptoms, $diagnosis, $medications, $instructions, $id]);
+            set_flash('Prescription updated successfully.');
+        } else {
+            $stmt = $pdo->prepare('INSERT INTO prescriptions (appointment_id, patient_id, doctor_id, symptoms, diagnosis, medications, instructions) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $stmt->execute([$id, $appt['patient_id'], $appt['doctor_id'], $symptoms, $diagnosis, $medications, $instructions]);
+            set_flash('Prescription created successfully.');
+        }
+        header("Location: appointment_details.php?id=$id");
+        exit();
+    }
+}
+
 $status_class = match ($appt['status']) {
     'pending' => 'warning',
     'confirmed' => 'success',
@@ -155,6 +200,116 @@ $status_class = match ($appt['status']) {
                     <p class="mb-0 text-dark" style="font-size: 14px; line-height: 1.6;">
                         <?= nl2br(esc($appt['notes'] ?: 'No notes provided for this appointment.')) ?>
                     </p>
+                </div>
+
+                <!-- Prescription & Diagnostics Card -->
+                <div class="card border-0 mt-4 shadow-sm" style="border-radius: 16px !important;">
+                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-dark" style="letter-spacing: -0.3px;"><i class="fas fa-file-prescription me-2 text-indigo"></i>Digital Prescription & Diagnostics</h5>
+                        <?php if ($prescription): ?>
+                            <a href="print_prescription.php?id=<?= $prescription['id'] ?>" target="_blank" class="btn btn-sm btn-outline-primary px-3 rounded-pill" style="font-size: 12px; font-weight: 600;">
+                                <i class="fas fa-print me-1"></i> Print / Download
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                    <div class="card-body p-4">
+                        <?php if ($prescription): ?>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted fw-bold small text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Symptoms</h6>
+                                    <p class="text-dark bg-light p-3 rounded-3 mb-0" style="font-size: 14px; min-height: 80px;"><?= nl2br(esc($prescription['symptoms'])) ?></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted fw-bold small text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Diagnosis</h6>
+                                    <p class="text-dark bg-light p-3 rounded-3 mb-0" style="font-size: 14px; min-height: 80px;"><?= nl2br(esc($prescription['diagnosis'])) ?></p>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <h6 class="text-muted fw-bold small text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Prescribed Medications</h6>
+                                    <div class="bg-light p-3 rounded-3 mb-0" style="font-size: 14px; font-family: monospace; white-space: pre-wrap; min-height: 100px;"><?= esc($prescription['medications']) ?></div>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <h6 class="text-muted fw-bold small text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Dosage Instructions / Remarks</h6>
+                                    <p class="text-dark bg-light p-3 rounded-3 mb-0" style="font-size: 14px; min-height: 80px;"><?= nl2br(esc($prescription['instructions'] ?: 'None')) ?></p>
+                                </div>
+                            </div>
+                            
+                            <?php if ($_SESSION['role'] === 'doctor'): ?>
+                                <div class="mt-4 pt-3 border-top text-end">
+                                    <button type="button" class="btn btn-sm btn-light px-3 border" data-bs-toggle="collapse" data-bs-target="#editPrescriptionCollapse" style="border-radius: 8px;">
+                                        <i class="fas fa-edit me-1"></i> Edit Prescription
+                                    </button>
+                                </div>
+                                
+                                <div class="collapse mt-3" id="editPrescriptionCollapse">
+                                    <form method="POST" class="p-3 border rounded-3 bg-light">
+                                        <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
+                                        <h6 class="fw-bold mb-3" style="font-size: 14px;">Update Prescription Details</h6>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Symptoms</label>
+                                                <textarea name="symptoms" class="form-control form-control-sm" rows="3" required><?= esc($prescription['symptoms']) ?></textarea>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Diagnosis</label>
+                                                <textarea name="diagnosis" class="form-control form-control-sm" rows="3" required><?= esc($prescription['diagnosis']) ?></textarea>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold">Medications (One per line: e.g. Paracetamol 500mg - 1 Tab - Twice Daily)</label>
+                                                <textarea name="medications" class="form-control form-control-sm" rows="4" required><?= esc($prescription['medications']) ?></textarea>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold">Instructions / Remarks</label>
+                                                <textarea name="instructions" class="form-control form-control-sm" rows="3"><?= esc($prescription['instructions']) ?></textarea>
+                                            </div>
+                                            <div class="col-12 text-end">
+                                                <button type="submit" name="save_prescription" class="btn btn-primary btn-sm px-4" style="border-radius: 8px;">
+                                                    Update Changes
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            <?php endif; ?>
+
+                        <?php else: ?>
+                            <?php if ($_SESSION['role'] === 'doctor'): ?>
+                                <p class="text-muted small mb-3">No digital prescription generated yet for this appointment. As the attending doctor, you can draft one below:</p>
+                                <form method="POST" class="p-3 border rounded-3 bg-light">
+                                    <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Symptoms</label>
+                                            <textarea name="symptoms" class="form-control form-control-sm" rows="3" placeholder="Enter patient symptoms (e.g. Cough, high grade fever)" required></textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Diagnosis</label>
+                                            <textarea name="diagnosis" class="form-control form-control-sm" rows="3" placeholder="Enter primary diagnosis (e.g. Acute bronchitis)" required></textarea>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label small fw-bold">Medications (One per line: e.g. Paracetamol 500mg - 1 Tab - Twice Daily)</label>
+                                            <textarea name="medications" class="form-control form-control-sm" rows="4" placeholder="1. Amoxicillin 500mg - 1 Cap - Three times daily&#10;2. Panadol 500mg - 2 Tabs - SOS" required></textarea>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label small fw-bold">Instructions / Remarks</label>
+                                            <textarea name="instructions" class="form-control form-control-sm" rows="3" placeholder="Take after meals. Complete the antibiotic course."></textarea>
+                                        </div>
+                                        <div class="col-12 text-end">
+                                            <button type="submit" name="save_prescription" class="btn btn-success btn-sm px-4" style="border-radius: 8px;">
+                                                Create & Save Prescription
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            <?php else: ?>
+                                <div class="text-center py-4">
+                                    <div style="background: #f8fafc; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                                        <i class="fas fa-receipt" style="font-size: 24px; color: #cbd5e1;"></i>
+                                    </div>
+                                    <p class="text-muted small fw-medium mb-0">No prescription generated yet by the attending doctor.</p>
+                                </div>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
