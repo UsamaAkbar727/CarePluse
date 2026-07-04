@@ -20,7 +20,9 @@ function load_env($path = '.env')
             $value = trim($parts[1], '"\' ');
             $_ENV[$name] = $value;
             $_SERVER[$name] = $value;
-            putenv("$name=$value");
+            if (function_exists('putenv')) {
+                putenv("$name=$value");
+            }
         }
     }
     return true;
