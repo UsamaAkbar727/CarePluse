@@ -6,6 +6,14 @@ $pdo = get_db_pdo();
 $user_role = $_SESSION['role'];
 $user_id = $_SESSION['user_id'];
 
+if ($user_role === 'pharmacist') {
+    header('Location: pharmacy.php');
+    exit();
+} elseif ($user_role === 'lab_tech') {
+    header('Location: lab_portal.php');
+    exit();
+}
+
 // Role-based stats
 $stats = [
     'total_appts' => 0,

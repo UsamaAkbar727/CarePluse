@@ -134,15 +134,25 @@ if (isset($_POST['admit_patient'])) {
     }
 }
 
-$patients = $pdo->query("SELECT id, name, phone FROM patients ORDER BY name ASC")->fetchAll();
-$doctors = $pdo->query("SELECT id, name, specialization FROM doctors WHERE status = 'available' ORDER BY name ASC")->fetchAll();
+$patients = $pdo->query("
+    SELECT p.id, p.name, p.phone,
+           (SELECT COUNT(*) FROM admissions a WHERE a.patient_id = p.id AND a.status = 'admitted') as is_admitted
+    FROM patients p 
+    ORDER BY p.name ASC
+")->fetchAll();
 
-// Available beds dropdown list
+$doctors = $pdo->query("
+    SELECT d.id, d.name, d.specialization,
+           (SELECT COUNT(*) FROM admissions a WHERE a.doctor_id = d.id AND a.status = 'admitted') as active_load
+    FROM doctors d 
+    WHERE d.status = 'available' 
+    ORDER BY d.name ASC
+")->fetchAll();
+
 $beds = $pdo->query("
     SELECT b.*, w.name as ward_name, w.type as ward_type 
     FROM beds b 
     JOIN wards w ON b.ward_id = w.id 
-    WHERE b.status = 'available' 
     ORDER BY w.name ASC, b.bed_number ASC
 ")->fetchAll();
 
@@ -166,7 +176,9 @@ $preselected_bed_id = isset($_GET['bed_id']) ? (int)$_GET['bed_id'] : 0;
                             <select name="patient_id" class="form-select rounded-3 py-2" required>
                                 <option value="" disabled selected>Choose a patient...</option>
                                 <?php foreach ($patients as $p): ?>
-                                    <option value="<?= $p['id'] ?>"><?= esc($p['name']) ?> (<?= esc($p['phone']) ?>)</option>
+                                    <option value="<?= $p['id'] ?>" <?= $p['is_admitted'] > 0 ? 'disabled' : '' ?>>
+                                        <?= esc($p['name']) ?> (<?= esc($p['phone']) ?>) <?= $p['is_admitted'] > 0 ? '— [ALREADY ADMITTED]' : '' ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -176,8 +188,8 @@ $preselected_bed_id = isset($_GET['bed_id']) ? (int)$_GET['bed_id'] : 0;
                             <select name="bed_id" class="form-select rounded-3 py-2" required>
                                 <option value="" disabled>Choose an available bed...</option>
                                 <?php foreach ($beds as $b): ?>
-                                    <option value="<?= $b['id'] ?>" <?= $b['id'] == $preselected_bed_id ? 'selected' : '' ?>>
-                                        <?= esc($b['ward_name']) ?> - Bed <?= esc($b['bed_number']) ?> (<?= esc($b['ward_type']) ?>)
+                                    <option value="<?= $b['id'] ?>" <?= $b['status'] !== 'available' ? 'disabled' : '' ?> <?= $b['id'] == $preselected_bed_id ? 'selected' : '' ?>>
+                                        <?= esc($b['ward_name']) ?> - Bed <?= esc($b['bed_number']) ?> (<?= esc($b['ward_type']) ?>) <?= $b['status'] !== 'available' ? '— [OCCUPIED]' : '' ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -188,7 +200,9 @@ $preselected_bed_id = isset($_GET['bed_id']) ? (int)$_GET['bed_id'] : 0;
                             <select name="doctor_id" class="form-select rounded-3 py-2" required>
                                 <option value="" disabled selected>Assign a physician...</option>
                                 <?php foreach ($doctors as $d): ?>
-                                    <option value="<?= $d['id'] ?>"><?= esc(format_doctor_name($d['name'])) ?> - <?= esc($d['specialization']) ?></option>
+                                    <option value="<?= $d['id'] ?>" <?= $d['active_load'] >= 3 ? 'disabled' : '' ?>>
+                                        <?= esc(format_doctor_name($d['name'])) ?> - <?= esc($d['specialization']) ?> <?= $d['active_load'] >= 3 ? '— [MAX ADMISSIONS REACHED]' : '' ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
