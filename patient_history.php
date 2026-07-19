@@ -231,9 +231,41 @@ foreach ($chart_encounters as $enc) {
                                             </div>
                                             
                                             <?php if ($enc['instructions']): ?>
-                                            <div>
+                                            <div class="mb-3">
                                                 <div class="fw-bold text-secondary mb-1" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Instructions</div>
                                                 <p class="mb-0 text-muted small bg-white p-3 rounded-3" style="border: 1px solid #f1f5f9;"><?= nl2br(esc($enc['instructions'])) ?></p>
+                                            </div>
+                                            <?php endif; ?>
+
+                                            <!-- Lab tests ordered during this encounter -->
+                                            <?php
+                                            $stmt_lab = $pdo->prepare("
+                                                SELECT lr.*, lt.name as test_name 
+                                                FROM lab_requests lr 
+                                                JOIN lab_tests lt ON lr.test_id = lt.id 
+                                                WHERE lr.appointment_id = ?
+                                            ");
+                                            $stmt_lab->execute([$enc['appointment_id']]);
+                                            $labs = $stmt_lab->fetchAll();
+                                            
+                                            if (!empty($labs)):
+                                            ?>
+                                            <div class="mt-3 pt-2 border-top">
+                                                <div class="fw-bold text-secondary mb-1" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Diagnostic Investigations Ordered</div>
+                                                <div class="row g-2 mt-1">
+                                                    <?php foreach ($labs as $l): ?>
+                                                        <div class="col-md-6 col-12">
+                                                            <div class="p-2 rounded bg-white border small">
+                                                                <span class="fw-bold text-dark d-block"><?= esc($l['test_name']) ?></span>
+                                                                <?php if ($l['status'] === 'completed'): ?>
+                                                                    <span class="text-success fw-medium d-block mt-1" style="font-size:11px;"><i class="fas fa-check-circle me-1"></i> Result: <?= esc($l['result_details']) ?></span>
+                                                                <?php else: ?>
+                                                                    <span class="text-warning fw-medium d-block mt-1" style="font-size:11px;"><i class="fas fa-spinner fa-spin me-1"></i> Status: Processing in lab</span>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
                                             </div>
                                             <?php endif; ?>
                                         </div>

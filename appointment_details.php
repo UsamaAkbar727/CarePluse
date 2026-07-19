@@ -82,10 +82,32 @@ if (isset($_POST['save_prescription']) && $_SESSION['role'] === 'doctor') {
             $stmt->execute([$id, $appt['patient_id'], $appt['doctor_id'], $symptoms, $diagnosis, $medications, $instructions, $blood_pressure, $heart_rate, $temperature, $weight]);
             set_flash('Prescription and vitals created successfully.');
         }
+
+        // Process Lab test requests
+        if (isset($_POST['lab_tests']) && is_array($_POST['lab_tests'])) {
+            $del_lab = $pdo->prepare("DELETE FROM lab_requests WHERE appointment_id = ? AND status = 'pending'");
+            $del_lab->execute([$id]);
+
+            $ins_lab = $pdo->prepare("INSERT INTO lab_requests (appointment_id, test_id, status) VALUES (?, ?, 'pending')");
+            foreach ($_POST['lab_tests'] as $test_id) {
+                $chk_lab = $pdo->prepare("SELECT id FROM lab_requests WHERE appointment_id = ? AND test_id = ?");
+                $chk_lab->execute([$id, $test_id]);
+                if (!$chk_lab->fetchColumn()) {
+                    $ins_lab->execute([$id, (int)$test_id]);
+                }
+            }
+        } else {
+            $del_lab = $pdo->prepare("DELETE FROM lab_requests WHERE appointment_id = ? AND status = 'pending'");
+            $del_lab->execute([$id]);
+        }
+
         header("Location: appointment_details.php?id=$id");
         exit();
     }
 }
+
+$all_tests = $pdo->query("SELECT * FROM lab_tests ORDER BY name ASC")->fetchAll();
+$ordered_tests = $pdo->query("SELECT test_id FROM lab_requests WHERE appointment_id = " . (int)$id)->fetchAll(PDO::FETCH_COLUMN) ?: [];
 
 $status_class = match ($appt['status']) {
     'pending' => 'warning',
@@ -264,6 +286,45 @@ $status_class = match ($appt['status']) {
                                     <p class="text-dark bg-light p-3 rounded-3 mb-0" style="font-size: 14px; min-height: 80px;"><?= nl2br(esc($prescription['instructions'] ?: 'None')) ?></p>
                                 </div>
                             </div>
+
+                            <!-- Display Lab test requests status -->
+                            <?php 
+                            $stmt_disp = $pdo->prepare("
+                                SELECT lr.*, lt.name as test_name
+                                FROM lab_requests lr
+                                JOIN lab_tests lt ON lr.test_id = lt.id
+                                WHERE lr.appointment_id = ?
+                            ");
+                            $stmt_disp->execute([$id]);
+                            $requests_disp = $stmt_disp->fetchAll();
+                            
+                            if (!empty($requests_disp)): 
+                            ?>
+                            <div class="mt-4 pt-3 border-top">
+                                <h6 class="text-muted fw-bold small text-uppercase mb-2" style="font-size: 11px; letter-spacing: 0.5px;"><i class="fas fa-microscope me-2"></i>Ordered Diagnostic Investigations</h6>
+                                <div class="row g-2">
+                                    <?php foreach ($requests_disp as $req): ?>
+                                        <div class="col-12 col-md-6">
+                                            <div class="p-3 rounded-3 border bg-light d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span class="fw-bold small text-dark d-block"><?= esc($req['test_name']) ?></span>
+                                                    <?php if ($req['status'] === 'completed'): ?>
+                                                        <span class="text-secondary d-block mt-1" style="font-size: 11px; font-family: monospace;">Result: <?= esc($req['result_details']) ?></span>
+                                                    <?php else: ?>
+                                                        <span class="text-muted d-block mt-1" style="font-size: 10px;">Status: Pending Results</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div>
+                                                    <span class="badge bg-<?= $req['status'] === 'completed' ? 'success' : 'warning' ?> px-2 py-1 rounded-pill" style="font-size: 9px;">
+                                                        <?= ucfirst($req['status']) ?>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                             
                             <?php if ($_SESSION['role'] === 'doctor'): ?>
                                 <div class="mt-4 pt-3 border-top text-end">
@@ -308,6 +369,22 @@ $status_class = match ($appt['status']) {
                                             <div class="col-12">
                                                 <label class="form-label small fw-bold">Instructions / Remarks</label>
                                                 <textarea name="instructions" class="form-control form-control-sm" rows="3"><?= esc($prescription['instructions']) ?></textarea>
+                                            </div>
+                                            <!-- Checkbox grid for lab tests -->
+                                            <div class="col-12 mt-2">
+                                                <label class="form-label small fw-bold d-block">Order Diagnostics Investigations</label>
+                                                <div class="row g-2 px-1">
+                                                    <?php foreach ($all_tests as $t): ?>
+                                                        <div class="col-md-6 col-12">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox" name="lab_tests[]" value="<?= $t['id'] ?>" id="lab_test_edit_<?= $t['id'] ?>" <?= in_array($t['id'], $ordered_tests) ? 'checked' : '' ?>>
+                                                                <label class="form-check-label small text-dark" for="lab_test_edit_<?= $t['id'] ?>">
+                                                                    <?= esc($t['name']) ?> ($<?= number_format($t['cost'], 2) ?>)
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
                                             </div>
                                             <div class="col-12 text-end">
                                                 <button type="submit" name="save_prescription" class="btn btn-primary btn-sm px-4" style="border-radius: 8px;">
@@ -356,6 +433,22 @@ $status_class = match ($appt['status']) {
                                         <div class="col-12">
                                             <label class="form-label small fw-bold">Instructions / Remarks</label>
                                             <textarea name="instructions" class="form-control form-control-sm" rows="3" placeholder="Take after meals. Complete the antibiotic course."></textarea>
+                                        </div>
+                                        <!-- Checkbox grid for lab tests -->
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label small fw-bold d-block">Order Diagnostics Investigations</label>
+                                            <div class="row g-2 px-1">
+                                                <?php foreach ($all_tests as $t): ?>
+                                                    <div class="col-md-6 col-12">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="lab_tests[]" value="<?= $t['id'] ?>" id="lab_test_add_<?= $t['id'] ?>">
+                                                            <label class="form-check-label small text-dark" for="lab_test_add_<?= $t['id'] ?>">
+                                                                <?= esc($t['name']) ?> ($<?= number_format($t['cost'], 2) ?>)
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
                                         </div>
                                         <div class="col-12 text-end">
                                             <button type="submit" name="save_prescription" class="btn btn-success btn-sm px-4" style="border-radius: 8px;">

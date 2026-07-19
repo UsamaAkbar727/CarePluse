@@ -583,6 +583,21 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <a href="doctor_schedule.php" class="nav-link <?= $current_page === 'doctor_schedule.php' ? 'active' : '' ?>">
             <i class="fas fa-calendar-alt"></i> Doctor Schedules
         </a>
+        <a href="wards_beds.php" class="nav-link <?= in_array($current_page, ['wards_beds.php', 'admissions.php']) ? 'active' : '' ?>">
+            <i class="fas fa-procedures"></i> IPD Wards & Beds
+        </a>
+        <?php endif; ?>
+
+        <?php if (in_array($user_role, ['admin', 'lab_tech'])): ?>
+        <a href="lab_portal.php" class="nav-link <?= $current_page === 'lab_portal.php' ? 'active' : '' ?>">
+            <i class="fas fa-flask"></i> Diagnostics Lab
+        </a>
+        <?php endif; ?>
+
+        <?php if (in_array($user_role, ['admin', 'pharmacist'])): ?>
+        <a href="pharmacy.php" class="nav-link <?= in_array($current_page, ['pharmacy.php', 'dispenser.php']) ? 'active' : '' ?>">
+            <i class="fas fa-pills"></i> Pharmacy & Inventory
+        </a>
         <?php endif; ?>
 
         <a href="appointments.php" class="nav-link <?= in_array($current_page, ['appointments.php','add_appointment.php']) ? 'active' : '' ?>">
