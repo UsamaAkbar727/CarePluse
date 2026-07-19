@@ -35,22 +35,29 @@ if (isset($_POST['book_appt'])) {
                 if ($formatted_time < $sched['start_time'] || $formatted_time > $sched['end_time']) {
                     set_flash('Attending hours for this physician on ' . $weekday . 's are between ' . date('h:i A', strtotime($sched['start_time'])) . ' and ' . date('h:i A', strtotime($sched['end_time'])) . '.', 'danger');
                 } else {
-                    // Check for duplicate appointment (same doctor, same date, same time)
-                    $stmt = $pdo->prepare("SELECT id FROM appointments WHERE doctor_id = ? AND app_date = ? AND app_time = ? AND status != 'cancelled'");
-                    $stmt->execute([$doctor_id, $app_date, $app_time]);
-                    
-                    if ($stmt->fetch()) {
-                        set_flash('Selected slot is already reserved for this doctor.', 'warning');
-                    } else {
-                        $stmt = $pdo->prepare("INSERT INTO appointments (patient_id, doctor_id, app_date, app_time, notes, created_by) VALUES (?, ?, ?, ?, ?, ?)");
-                        if ($stmt->execute([$patient_id, $doctor_id, $app_date, $app_time, $notes, $_SESSION['user_id']])) {
-                            $new_id = $pdo->lastInsertId();
-                            audit_log($pdo, 'BOOK', 'appointments', $new_id, null, ['patient_id' => $patient_id, 'date' => $app_date]);
-                            set_flash('Appointment booked successfully!');
-                            header('Location: appointments.php');
-                            exit();
-                        }
-                    }
+                     // Check for duplicate appointment (same doctor, same date, same time)
+                     $stmt = $pdo->prepare("SELECT id FROM appointments WHERE doctor_id = ? AND app_date = ? AND app_time = ? AND status != 'cancelled'");
+                     $stmt->execute([$doctor_id, $app_date, $app_time]);
+                     
+                     if ($stmt->fetch()) {
+                         set_flash('Selected slot is already reserved for this doctor.', 'warning');
+                     } else {
+                         // Check if patient is already booked at this slot
+                         $pat_stmt = $pdo->prepare("SELECT id FROM appointments WHERE patient_id = ? AND app_date = ? AND app_time = ? AND status != 'cancelled'");
+                         $pat_stmt->execute([$patient_id, $app_date, $app_time]);
+                         if ($pat_stmt->fetch()) {
+                             set_flash('This patient is already scheduled for another consultation at this date and time slot.', 'warning');
+                         } else {
+                             $stmt = $pdo->prepare("INSERT INTO appointments (patient_id, doctor_id, app_date, app_time, notes, created_by) VALUES (?, ?, ?, ?, ?, ?)");
+                             if ($stmt->execute([$patient_id, $doctor_id, $app_date, $app_time, $notes, $_SESSION['user_id']])) {
+                                 $new_id = $pdo->lastInsertId();
+                                 audit_log($pdo, 'BOOK', 'appointments', $new_id, null, ['patient_id' => $patient_id, 'date' => $app_date]);
+                                 set_flash('Appointment booked successfully!');
+                                 header('Location: appointments.php');
+                                 exit();
+                             }
+                         }
+                     }
                 }
             }
         }

@@ -53,29 +53,36 @@ if (isset($_POST['update_appt'])) {
                     if ($stmt->fetch()) {
                         set_flash('Selected slot is already reserved for this doctor by another patient.', 'warning');
                     } else {
-                        // Check if status is updated to completed - auto generate invoice
-                        if ($status === 'completed' && $appt['status'] !== 'completed') {
-                            $chk_stmt = $pdo->prepare('SELECT id FROM invoices WHERE appointment_id = ?');
-                            $chk_stmt->execute([$id]);
-                            if (!$chk_stmt->fetchColumn()) {
-                                // Default consultation fee: $50.00, tax 5%: $2.50, net: $52.50
-                                $inv_stmt = $pdo->prepare('INSERT INTO invoices (appointment_id, patient_id, total_amount, tax, net_amount, status) VALUES (?, ?, 50.00, 2.50, 52.50, "unpaid")');
-                                $inv_stmt->execute([$id, $patient_id]);
-                                $invoice_id = $pdo->lastInsertId();
+                        // Check if patient is already booked at this slot (excluding self)
+                        $pat_stmt = $pdo->prepare("SELECT id FROM appointments WHERE patient_id = ? AND app_date = ? AND app_time = ? AND id != ? AND status != 'cancelled'");
+                        $pat_stmt->execute([$patient_id, $app_date, $app_time, $id]);
+                        if ($pat_stmt->fetch()) {
+                            set_flash('This patient is already scheduled for another consultation at this date and time slot.', 'warning');
+                        } else {
+                            // Check if status is updated to completed - auto generate invoice
+                            if ($status === 'completed' && $appt['status'] !== 'completed') {
+                                $chk_stmt = $pdo->prepare('SELECT id FROM invoices WHERE appointment_id = ?');
+                                $chk_stmt->execute([$id]);
+                                if (!$chk_stmt->fetchColumn()) {
+                                    // Default consultation fee: $50.00, tax 5%: $2.50, net: $52.50
+                                    $inv_stmt = $pdo->prepare('INSERT INTO invoices (appointment_id, patient_id, total_amount, tax, net_amount, status) VALUES (?, ?, 50.00, 2.50, 52.50, "unpaid")');
+                                    $inv_stmt->execute([$id, $patient_id]);
+                                    $invoice_id = $pdo->lastInsertId();
 
-                                $item_stmt = $pdo->prepare('INSERT INTO invoice_items (invoice_id, item_description, quantity, unit_price, total_price) VALUES (?, "Doctor Consultation Fee", 1, 50.00, 50.00)');
-                                $item_stmt->execute([$invoice_id]);
+                                    $item_stmt = $pdo->prepare('INSERT INTO invoice_items (invoice_id, item_description, quantity, unit_price, total_price) VALUES (?, "Doctor Consultation Fee", 1, 50.00, 50.00)');
+                                    $item_stmt->execute([$invoice_id]);
+                                }
                             }
-                        }
 
-                        $stmt = $pdo->prepare("UPDATE appointments SET patient_id = ?, doctor_id = ?, app_date = ?, app_time = ?, status = ?, notes = ?, updated_by = ?, updated_at = NOW() WHERE id = ?");
-                        if ($stmt->execute([$patient_id, $doctor_id, $app_date, $app_time, $status, $notes, $_SESSION['user_id'], $id])) {
-                            
-                            audit_log($pdo, 'UPDATE', 'appointments', $id, $appt, ['patient_id' => $patient_id, 'date' => $app_date, 'status' => $status]);
-                            
-                            set_flash('Appointment updated successfully!');
-                            header("Location: appointment_details.php?id=$id");
-                            exit();
+                            $stmt = $pdo->prepare("UPDATE appointments SET patient_id = ?, doctor_id = ?, app_date = ?, app_time = ?, status = ?, notes = ?, updated_by = ?, updated_at = NOW() WHERE id = ?");
+                            if ($stmt->execute([$patient_id, $doctor_id, $app_date, $app_time, $status, $notes, $_SESSION['user_id'], $id])) {
+                                
+                                audit_log($pdo, 'UPDATE', 'appointments', $id, $appt, ['patient_id' => $patient_id, 'date' => $app_date, 'status' => $status]);
+                                
+                                set_flash('Appointment updated successfully!');
+                                header("Location: appointment_details.php?id=$id");
+                                exit();
+                            }
                         }
                     }
                 }

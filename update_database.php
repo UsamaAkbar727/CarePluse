@@ -149,6 +149,7 @@ try {
             admission_date DATE NOT NULL,
             discharge_date DATE DEFAULT NULL,
             room_charges DECIMAL(10,2) DEFAULT 50.00,
+            expected_duration_days INT DEFAULT 5,
             status ENUM('admitted', 'discharged') NOT NULL DEFAULT 'admitted',
             FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
             FOREIGN KEY (bed_id) REFERENCES beds(id) ON DELETE CASCADE,

@@ -84,31 +84,51 @@ if (isset($_POST['admit_patient'])) {
         $bed_id = (int)$_POST['bed_id'];
         $doctor_id = (int)$_POST['doctor_id'];
         $charges = (float)($_POST['room_charges'] ?? 50.00);
+        $duration = (int)($_POST['expected_duration_days'] ?? 5);
         $admit_date = $_POST['admission_date'] ?? date('Y-m-d');
         
-        if ($patient_id <= 0 || $bed_id <= 0 || $doctor_id <= 0 || $charges <= 0) {
-            set_flash('Please fill in all admission details correctly.', 'danger');
+        if ($patient_id <= 0 || $bed_id <= 0 || $doctor_id <= 0 || $charges <= 0 || $duration < 1 || $duration > 30) {
+            set_flash('Please fill in all details correctly. Stay duration must be between 1 and 30 days.', 'danger');
         } else {
-
             $chk_stmt = $pdo->prepare("SELECT id FROM admissions WHERE patient_id = ? AND status = 'admitted'");
             $chk_stmt->execute([$patient_id]);
             if ($chk_stmt->fetch()) {
                 set_flash('This patient is already admitted in the hospital.', 'danger');
             } else {
+                // Check if the bed is available
+                $bed_chk = $pdo->prepare("SELECT status FROM beds WHERE id = ?");
+                $bed_chk->execute([$bed_id]);
+                if ($bed_chk->fetchColumn() !== 'available') {
+                    set_flash('The selected bed is already occupied or unavailable.', 'danger');
+                } else {
+                    // Check doctor weekday shift schedule
+                    $day_of_week = date('l', strtotime($admit_date));
+                    $avail_chk = $pdo->prepare("SELECT COUNT(*) FROM doctor_availability WHERE doctor_id = ? AND day_of_week = ?");
+                    $avail_chk->execute([$doctor_id, $day_of_week]);
+                    if ($avail_chk->fetchColumn() == 0) {
+                        set_flash("The selected doctor is not scheduled to work on $day_of_week.", 'danger');
+                    } else {
+                        // Check doctor active inpatient load (max 3)
+                        $load_chk = $pdo->prepare("SELECT COUNT(*) FROM admissions WHERE doctor_id = ? AND status = 'admitted'");
+                        $load_chk->execute([$doctor_id]);
+                        if ($load_chk->fetchColumn() >= 3) {
+                            set_flash("Selected doctor is currently managing the maximum limit of active inpatients (Max 3).", 'danger');
+                        } else {
+                            $stmt = $pdo->prepare("INSERT INTO admissions (patient_id, bed_id, doctor_id, admission_date, room_charges, expected_duration_days, status) VALUES (?, ?, ?, ?, ?, ?, 'admitted')");
+                            $stmt->execute([$patient_id, $bed_id, $doctor_id, $admit_date, $charges, $duration]);
+                            $admission_id = $pdo->lastInsertId();
 
-                $stmt = $pdo->prepare("INSERT INTO admissions (patient_id, bed_id, doctor_id, admission_date, room_charges, status) VALUES (?, ?, ?, ?, ?, 'admitted')");
-                $stmt->execute([$patient_id, $bed_id, $doctor_id, $admit_date, $charges]);
-                $admission_id = $pdo->lastInsertId();
-
-                $stmt = $pdo->prepare("UPDATE beds SET status = 'occupied' WHERE id = ?");
-                $stmt->execute([$bed_id]);
-                
-                // Log audit
-                audit_log($pdo, 'ADMIT_PATIENT', 'admissions', $admission_id, null, ['patient_id' => $patient_id, 'bed_id' => $bed_id]);
-                
-                set_flash('Patient admitted successfully and bed status updated!');
-                header('Location: wards_beds.php');
-                exit();
+                            $stmt = $pdo->prepare("UPDATE beds SET status = 'occupied' WHERE id = ?");
+                            $stmt->execute([$bed_id]);
+                            
+                            audit_log($pdo, 'ADMIT_PATIENT', 'admissions', $admission_id, null, ['patient_id' => $patient_id, 'bed_id' => $bed_id]);
+                            
+                            set_flash('Patient admitted successfully and bed status updated!');
+                            header('Location: wards_beds.php');
+                            exit();
+                        }
+                    }
+                }
             }
         }
     }
@@ -173,14 +193,19 @@ $preselected_bed_id = isset($_GET['bed_id']) ? (int)$_GET['bed_id'] : 0;
                             </select>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold">Daily Room Charges ($)</label>
                             <input type="number" step="0.01" name="room_charges" class="form-control rounded-3 py-2" value="50.00" min="0" required>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold">Admission Date</label>
                             <input type="date" name="admission_date" class="form-control rounded-3 py-2" value="<?= date('Y-m-d') ?>" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Stay Duration (Days)</label>
+                            <input type="number" name="expected_duration_days" class="form-control rounded-3 py-2" value="5" min="1" max="30" required>
                         </div>
 
                         <div class="col-12 pt-3">
