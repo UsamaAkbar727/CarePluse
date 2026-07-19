@@ -215,8 +215,62 @@ try {
     ");
     echo "OK\n";
 
+    // 13. Create insurance_companies table
+    echo "Creating insurance_companies table... ";
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS insurance_companies (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            coverage_percentage DECIMAL(5,2) DEFAULT 80.00,
+            contact_email VARCHAR(100)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+    echo "OK\n";
+
+    // 14. Create patient_insurance table
+    echo "Creating patient_insurance table... ";
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS patient_insurance (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            patient_id INT NOT NULL,
+            company_id INT NOT NULL,
+            policy_number VARCHAR(50) NOT NULL,
+            status ENUM('active', 'expired') DEFAULT 'active',
+            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+            FOREIGN KEY (company_id) REFERENCES insurance_companies(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+    echo "OK\n";
+
+    // 15. Create insurance_claims table
+    echo "Creating insurance_claims table... ";
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS insurance_claims (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            invoice_id INT NOT NULL,
+            company_id INT NOT NULL,
+            claim_number VARCHAR(50) UNIQUE NOT NULL,
+            amount_claimed DECIMAL(10,2) NOT NULL,
+            amount_approved DECIMAL(10,2) DEFAULT 0.00,
+            status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+            remarks TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+            FOREIGN KEY (company_id) REFERENCES insurance_companies(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+    echo "OK\n";
+
     // Seed defaults
-    echo "Seeding default data (Wards, Beds, Medicines, Lab Tests, Accounts)... ";
+    echo "Seeding default data (Wards, Beds, Medicines, Lab Tests, Insurance, Accounts)... ";
+    
+    // Seed Insurance Companies
+    $pdo->exec("INSERT IGNORE INTO insurance_companies (id, name, coverage_percentage, contact_email) VALUES 
+        (1, 'State Health Insurance Corp', 90.00, 'claims@statehealth.gov'),
+        (2, 'CareFirst BlueCross BlueShield', 80.00, 'claims@carefirst.com'),
+        (3, 'Aetna Medicare Advantage', 75.00, 'processing@aetna.com'),
+        (4, 'Allianz Global Clinical Health', 85.00, 'global.claims@allianz.com')
+    ");
     
     // Seed Wards
     $pdo->exec("INSERT IGNORE INTO wards (id, name, type, capacity) VALUES 

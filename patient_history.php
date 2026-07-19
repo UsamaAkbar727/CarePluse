@@ -15,6 +15,30 @@ if (!$patient) {
     exit();
 }
 
+// Handle Patient Insurance details update
+if (isset($_POST['save_insurance'])) {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        set_flash('Invalid security token.', 'danger');
+    } else {
+        $company_id = (int)$_POST['company_id'];
+        $policy_number = trim($_POST['policy_number'] ?? '');
+        
+        if ($company_id > 0 && !empty($policy_number)) {
+            $up_stmt = $pdo->prepare("UPDATE patient_insurance SET status = 'expired' WHERE patient_id = ?");
+            $up_stmt->execute([$patient_id]);
+            
+            $ins_policy = $pdo->prepare("INSERT INTO patient_insurance (patient_id, company_id, policy_number, status) VALUES (?, ?, ?, 'active')");
+            $ins_policy->execute([$patient_id, $company_id, $policy_number]);
+            
+            set_flash('Insurance policy updated successfully!');
+            header("Location: patient_history.php?id=$patient_id");
+            exit();
+        } else {
+            set_flash('Please provide valid insurance parameters.', 'danger');
+        }
+    }
+}
+
 $stmt = $pdo->prepare("
     SELECT pr.*, d.name as doctor_name, d.specialization, a.app_date, a.app_time
     FROM prescriptions pr
@@ -35,6 +59,19 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$patient_id]);
 $invoices = $stmt->fetchAll();
+
+// Fetch insurance details
+$ins_stmt = $pdo->prepare("
+    SELECT pi.*, ic.name as company_name, ic.coverage_percentage
+    FROM patient_insurance pi
+    JOIN insurance_companies ic ON pi.company_id = ic.id
+    WHERE pi.patient_id = ? AND pi.status = 'active'
+    LIMIT 1
+");
+$ins_stmt->execute([$patient_id]);
+$insurance = $ins_stmt->fetch();
+
+$companies = $pdo->query("SELECT * FROM insurance_companies ORDER BY name ASC")->fetchAll();
 
 $chart_encounters = array_reverse($encounters);
 $chart_dates = [];
@@ -130,6 +167,30 @@ foreach ($chart_encounters as $enc) {
                         <span class="fw-bold small text-dark mt-1 d-block"><?= esc($patient['emergency_contact']) ?></span>
                     </div>
                     <?php endif; ?>
+
+                    <!-- Insurance policy details box -->
+                    <div class="pt-4 border-top mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-secondary small fw-bold text-uppercase" style="font-size:11px;"><i class="fas fa-id-card me-1"></i> Insurance Policy</span>
+                            <?php if (in_array($_SESSION['role'], ['admin', 'receptionist'])): ?>
+                                <button class="btn btn-xs btn-outline-primary py-0 px-2 rounded-pill" data-bs-toggle="modal" data-bs-target="#insuranceModal" style="font-size:10px;">Edit</button>
+                            <?php endif; ?>
+                        </div>
+                        <?php if ($insurance): ?>
+                            <div class="p-3 bg-primary-subtle rounded-3 border border-primary-subtle text-primary">
+                                <span class="fw-bold d-block text-dark" style="font-size:13px;"><?= esc($insurance['company_name']) ?></span>
+                                <span class="small d-block text-secondary mt-1">Policy: <strong><?= esc($insurance['policy_number']) ?></strong></span>
+                                <span class="small d-block text-success fw-bold mt-1"><i class="fas fa-shield-alt me-1"></i> Covers <?= number_format($insurance['coverage_percentage'], 0) ?>% of Bills</span>
+                            </div>
+                        <?php else: ?>
+                            <div class="p-3 rounded-3 border border-dashed text-center bg-light">
+                                <span class="text-muted small d-block mb-2">No active health insurance policy.</span>
+                                <?php if (in_array($_SESSION['role'], ['admin', 'receptionist'])): ?>
+                                    <button class="btn btn-xs btn-outline-secondary py-1 px-3 rounded-pill" data-bs-toggle="modal" data-bs-target="#insuranceModal" style="font-size:11px;">Attach Policy</button>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -424,6 +485,44 @@ foreach ($chart_encounters as $enc) {
                     
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Insurance Modal -->
+<div class="modal fade" id="insuranceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-bottom-0 p-4 pb-0">
+                <h5 class="modal-title fw-bold">Attach Health Insurance Policy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Insurance Provider / Carrier</label>
+                        <select name="company_id" class="form-select rounded-3" required>
+                            <option value="" disabled selected>Choose provider...</option>
+                            <?php foreach ($companies as $c): ?>
+                                <option value="<?= $c['id'] ?>" <?= $insurance && $insurance['company_id'] == $c['id'] ? 'selected' : '' ?>>
+                                    <?= esc($c['name']) ?> (Covers <?= number_format($c['coverage_percentage'], 0) ?>%)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold">Policy / Membership Number</label>
+                        <input type="text" name="policy_number" class="form-control rounded-3" value="<?= $insurance ? esc($insurance['policy_number']) : '' ?>" placeholder="e.g. POL-89739281-BC" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="save_insurance" class="btn btn-primary rounded-pill px-4">Save Policy Details</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

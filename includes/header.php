@@ -615,6 +615,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <a href="users.php" class="nav-link <?= $current_page === 'users.php' ? 'active' : '' ?>">
             <i class="fas fa-users-cog"></i> User Management
         </a>
+        <a href="insurance_claims.php" class="nav-link <?= $current_page === 'insurance_claims.php' ? 'active' : '' ?>">
+            <i class="fas fa-file-invoice"></i> Insurance Claims
+        </a>
         <a href="audit_logs.php" class="nav-link <?= $current_page === 'audit_logs.php' ? 'active' : '' ?>">
             <i class="fas fa-shield-alt"></i> Audit Logs
         </a>

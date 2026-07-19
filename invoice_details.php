@@ -25,6 +25,16 @@ if (!$invoice) {
     exit();
 }
 
+$ins_stmt = $pdo->prepare("
+    SELECT pi.*, ic.name as company_name, ic.coverage_percentage, ic.id as company_id
+    FROM patient_insurance pi
+    JOIN insurance_companies ic ON pi.company_id = ic.id
+    WHERE pi.patient_id = ? AND pi.status = 'active'
+    LIMIT 1
+");
+$ins_stmt->execute([$invoice['patient_id']]);
+$insurance = $ins_stmt->fetch();
+
 // Handle Add Invoice Item
 if (isset($_POST['add_item'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
@@ -86,11 +96,33 @@ if (isset($_POST['update_invoice'])) {
         $net = ($gross + $tax) - $discount;
         if ($net < 0) $net = 0;
         
-        // Update database
         $stmt = $pdo->prepare("UPDATE invoices SET total_amount = ?, discount = ?, tax = ?, net_amount = ?, status = ?, payment_method = ? WHERE id = ?");
         $stmt->execute([$gross, $discount, $tax, $net, $status, $pay_method, $invoice_id]);
         
-        // Audit log
+        if ($pay_method === 'Insurance' && $insurance) {
+            $chk_claim = $pdo->prepare("SELECT id FROM insurance_claims WHERE invoice_id = ?");
+            $chk_claim->execute([$invoice_id]);
+            $claim_id = $chk_claim->fetchColumn();
+            
+            $claim_portion = $net * ($insurance['coverage_percentage'] / 100);
+            
+            if (!$claim_id) {
+                $claim_number = 'CLM-' . strtoupper(uniqid());
+                $ins_claim = $pdo->prepare("
+                    INSERT INTO insurance_claims (invoice_id, company_id, claim_number, amount_claimed, status)
+                    VALUES (?, ?, ?, ?, 'pending')
+                ");
+                $ins_claim->execute([$invoice_id, $insurance['company_id'], $claim_number, $claim_portion]);
+            } else {
+                $up_claim = $pdo->prepare("
+                    UPDATE insurance_claims 
+                    SET company_id = ?, amount_claimed = ? 
+                    WHERE id = ? AND status = 'pending'
+                ");
+                $up_claim->execute([$insurance['company_id'], $claim_portion, $claim_id]);
+            }
+        }
+        
         audit_log($pdo, 'UPDATE_BILL', 'invoices', $invoice_id, ['net_amount' => $invoice['net_amount'], 'status' => $invoice['status']], ['net_amount' => $net, 'status' => $status]);
         
         set_flash('Invoice financial configuration updated.');
@@ -292,6 +324,48 @@ $invoice_items = $stmt->fetchAll();
                     </div>
                 </div>
             </div>
+
+            <!-- Insurance Claim Display Section -->
+            <?php 
+            if ($invoice['payment_method'] === 'Insurance'):
+                $claim_details_stmt = $pdo->prepare("
+                    SELECT c.*, ic.name as company_name, ic.coverage_percentage
+                    FROM insurance_claims c
+                    JOIN insurance_companies ic ON c.company_id = ic.id
+                    WHERE c.invoice_id = ?
+                ");
+                $claim_details_stmt->execute([$invoice_id]);
+                $claim_info = $claim_details_stmt->fetch();
+                
+                if ($claim_info):
+                    $cov_pct = $claim_info['coverage_percentage'];
+                    $claimed = $claim_info['amount_claimed'];
+                    $copay = $invoice['net_amount'] - $claimed;
+            ?>
+            <div class="alert alert-info border-0 rounded-4 p-4 mt-3 no-print" style="background: rgba(79, 70, 229, 0.05); color: #1e1b4b;">
+                <h6 class="fw-bold mb-2 text-primary" style="font-size:14px;"><i class="fas fa-shield-alt me-2"></i>Medical Insurance Claim Summary</h6>
+                <div class="row g-2 small mt-1" style="font-size:13px;">
+                    <div class="col-6 text-muted">Insurance Carrier:</div>
+                    <div class="col-6 fw-bold text-dark"><?= esc($claim_info['company_name']) ?></div>
+                    <div class="col-6 text-muted">Claim Identifier:</div>
+                    <div class="col-6 fw-bold text-dark"><?= esc($claim_info['claim_number']) ?></div>
+                    <div class="col-6 text-muted">Coverage Percent:</div>
+                    <div class="col-6 fw-bold text-success"><?= number_format($cov_pct, 0) ?>% Coverage</div>
+                    <div class="col-6 text-muted">Claim Status:</div>
+                    <div class="col-6 fw-bold">
+                        <span class="badge bg-<?= $claim_info['status'] === 'approved' ? 'success' : ($claim_info['status'] === 'rejected' ? 'danger' : 'warning') ?> px-3 py-1 rounded-pill" style="font-size: 10px;">
+                            <?= strtoupper($claim_info['status']) ?>
+                        </span>
+                    </div>
+                    <div class="col-12 my-2 border-top"></div>
+                    <div class="col-6 text-muted">Co-pay Patient Share:</div>
+                    <div class="col-6 fw-bold text-danger" style="font-size:15px;">$<?= number_format($copay, 2) ?></div>
+                    <div class="col-6 text-muted">Insurance Reimbursable:</div>
+                    <div class="col-6 fw-bold text-primary" style="font-size:15px;">$<?= number_format($claimed, 2) ?></div>
+                </div>
+            </div>
+            <?php endif; ?>
+            <?php endif; ?>
         </div>
     </div>
 
