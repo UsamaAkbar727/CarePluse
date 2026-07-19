@@ -580,11 +580,20 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <a href="doctors.php" class="nav-link <?= $current_page === 'doctors.php' ? 'active' : '' ?>">
             <i class="fas fa-user-md"></i> Doctors
         </a>
+        <a href="doctor_schedule.php" class="nav-link <?= $current_page === 'doctor_schedule.php' ? 'active' : '' ?>">
+            <i class="fas fa-calendar-alt"></i> Doctor Schedules
+        </a>
         <?php endif; ?>
 
         <a href="appointments.php" class="nav-link <?= in_array($current_page, ['appointments.php','add_appointment.php']) ? 'active' : '' ?>">
             <i class="fas fa-calendar-check"></i> Appointments
         </a>
+
+        <?php if (in_array($user_role, ['admin', 'receptionist'])): ?>
+        <a href="billing.php" class="nav-link <?= in_array($current_page, ['billing.php', 'invoice_details.php']) ? 'active' : '' ?>">
+            <i class="fas fa-file-invoice-dollar"></i> Billing & Ledgers
+        </a>
+        <?php endif; ?>
 
         <?php if ($user_role === 'admin'): ?>
         <div class="sidebar-section-title mt-2">Admin</div>

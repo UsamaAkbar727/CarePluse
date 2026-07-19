@@ -12,13 +12,30 @@ if (isset($_POST['login'])) {
         $error = 'Please fill all fields.';
     } else {
         $pdo = get_db_pdo();
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+
+        // Check block status (5 attempts in last 15 minutes)
+        $lockout_stmt = $pdo->prepare('SELECT COUNT(*) FROM login_attempts WHERE ip_address = ? AND attempt_time > DATE_SUB(NOW(), INTERVAL 15 MINUTE)');
+        $lockout_stmt->execute([$ip]);
+        $attempts = $lockout_stmt->fetchColumn();
+
+        if ($attempts >= 5) {
+            $_SESSION['login_error'] = 'Too many failed login attempts. This IP has been locked out for 15 minutes.';
+            header("Location: login.php");
+            exit();
+        }
+
         // Check both username and email
         $stmt = $pdo->prepare('SELECT id, username, password, role, email, full_name, is_active FROM users WHERE username = ? OR email = ?');
         $stmt->execute([trim($_POST['username']), trim($_POST['username'])]);
         $user = $stmt->fetch();
 
         if (!$user) {
-            $_SESSION['login_error'] = 'User ' . esc($_POST['username']) . ' not found.';
+            // Log failed attempt
+            $log_stmt = $pdo->prepare('INSERT INTO login_attempts (ip_address, username) VALUES (?, ?)');
+            $log_stmt->execute([$ip, trim($_POST['username'])]);
+
+            $_SESSION['login_error'] = 'Incorrect username or password. Attempts left: ' . (5 - ($attempts + 1));
             header("Location: login.php");
             exit();
         } elseif ($user['is_active'] == 0) {
@@ -26,11 +43,18 @@ if (isset($_POST['login'])) {
             header("Location: login.php");
             exit();
         } elseif (!password_verify(trim($_POST['password']), $user['password'])) {
-            $_SESSION['login_error'] = 'Incorrect password. Please try again.';
+            // Log failed attempt
+            $log_stmt = $pdo->prepare('INSERT INTO login_attempts (ip_address, username) VALUES (?, ?)');
+            $log_stmt->execute([$ip, trim($_POST['username'])]);
+
+            $_SESSION['login_error'] = 'Incorrect username or password. Attempts left: ' . (5 - ($attempts + 1));
             header("Location: login.php");
             exit();
         } else {
-            // Success
+            // Success - Clear failed attempts for this IP
+            $clear_stmt = $pdo->prepare('DELETE FROM login_attempts WHERE ip_address = ?');
+            $clear_stmt->execute([$ip]);
+
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];

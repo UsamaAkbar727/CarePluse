@@ -68,15 +68,19 @@ if (isset($_POST['save_prescription']) && $_SESSION['role'] === 'doctor') {
         $diagnosis = trim($_POST['diagnosis'] ?? '');
         $medications = trim($_POST['medications'] ?? '');
         $instructions = trim($_POST['instructions'] ?? '');
+        $blood_pressure = trim($_POST['blood_pressure'] ?? '');
+        $heart_rate = trim($_POST['heart_rate'] ?? '');
+        $temperature = trim($_POST['temperature'] ?? '');
+        $weight = trim($_POST['weight'] ?? '');
         
         if ($prescription) {
-            $stmt = $pdo->prepare('UPDATE prescriptions SET symptoms = ?, diagnosis = ?, medications = ?, instructions = ? WHERE appointment_id = ?');
-            $stmt->execute([$symptoms, $diagnosis, $medications, $instructions, $id]);
-            set_flash('Prescription updated successfully.');
+            $stmt = $pdo->prepare('UPDATE prescriptions SET symptoms = ?, diagnosis = ?, medications = ?, instructions = ?, blood_pressure = ?, heart_rate = ?, temperature = ?, weight = ? WHERE appointment_id = ?');
+            $stmt->execute([$symptoms, $diagnosis, $medications, $instructions, $blood_pressure, $heart_rate, $temperature, $weight, $id]);
+            set_flash('Prescription and vitals updated successfully.');
         } else {
-            $stmt = $pdo->prepare('INSERT INTO prescriptions (appointment_id, patient_id, doctor_id, symptoms, diagnosis, medications, instructions) VALUES (?, ?, ?, ?, ?, ?, ?)');
-            $stmt->execute([$id, $appt['patient_id'], $appt['doctor_id'], $symptoms, $diagnosis, $medications, $instructions]);
-            set_flash('Prescription created successfully.');
+            $stmt = $pdo->prepare('INSERT INTO prescriptions (appointment_id, patient_id, doctor_id, symptoms, diagnosis, medications, instructions, blood_pressure, heart_rate, temperature, weight) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->execute([$id, $appt['patient_id'], $appt['doctor_id'], $symptoms, $diagnosis, $medications, $instructions, $blood_pressure, $heart_rate, $temperature, $weight]);
+            set_flash('Prescription and vitals created successfully.');
         }
         header("Location: appointment_details.php?id=$id");
         exit();
@@ -214,6 +218,34 @@ $status_class = match ($appt['status']) {
                     </div>
                     <div class="card-body p-4">
                         <?php if ($prescription): ?>
+                            <!-- Patient Vitals Display -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 rounded-4 text-center bg-light border border-white" style="box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted);"><i class="fas fa-heartbeat me-1 text-danger"></i> BP</div>
+                                        <div class="fw-bold mt-1" style="font-size: 15px; color: var(--text);"><?= esc($prescription['blood_pressure'] ?: 'N/A') ?></div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 rounded-4 text-center bg-light border border-white" style="box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted);"><i class="fas fa-heart me-1 text-success"></i> Heart Rate</div>
+                                        <div class="fw-bold mt-1" style="font-size: 15px; color: var(--text);"><?= $prescription['heart_rate'] ? esc($prescription['heart_rate']) . ' bpm' : 'N/A' ?></div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 rounded-4 text-center bg-light border border-white" style="box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted);"><i class="fas fa-thermometer-half me-1 text-warning"></i> Temp</div>
+                                        <div class="fw-bold mt-1" style="font-size: 15px; color: var(--text);"><?= $prescription['temperature'] ? esc($prescription['temperature']) . ' °C' : 'N/A' ?></div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 rounded-4 text-center bg-light border border-white" style="box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted);"><i class="fas fa-weight me-1 text-info"></i> Weight</div>
+                                        <div class="fw-bold mt-1" style="font-size: 15px; color: var(--text);"><?= $prescription['weight'] ? esc($prescription['weight']) . ' kg' : 'N/A' ?></div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <h6 class="text-muted fw-bold small text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Symptoms</h6>
@@ -245,6 +277,22 @@ $status_class = match ($appt['status']) {
                                         <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
                                         <h6 class="fw-bold mb-3" style="font-size: 14px;">Update Prescription Details</h6>
                                         <div class="row g-3">
+                                            <div class="col-md-3">
+                                                <label class="form-label small fw-bold">BP (e.g. 120/80)</label>
+                                                <input type="text" name="blood_pressure" class="form-control form-control-sm" value="<?= esc($prescription['blood_pressure']) ?>">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small fw-bold">Heart Rate (bpm)</label>
+                                                <input type="text" name="heart_rate" class="form-control form-control-sm" value="<?= esc($prescription['heart_rate']) ?>">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small fw-bold">Temp (°C)</label>
+                                                <input type="text" name="temperature" class="form-control form-control-sm" value="<?= esc($prescription['temperature']) ?>">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small fw-bold">Weight (kg)</label>
+                                                <input type="text" name="weight" class="form-control form-control-sm" value="<?= esc($prescription['weight']) ?>">
+                                            </div>
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-bold">Symptoms</label>
                                                 <textarea name="symptoms" class="form-control form-control-sm" rows="3" required><?= esc($prescription['symptoms']) ?></textarea>
@@ -277,6 +325,22 @@ $status_class = match ($appt['status']) {
                                 <form method="POST" class="p-3 border rounded-3 bg-light">
                                     <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
                                     <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-bold">BP (e.g. 120/80)</label>
+                                            <input type="text" name="blood_pressure" class="form-control form-control-sm" placeholder="120/80">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-bold">Heart Rate (bpm)</label>
+                                            <input type="text" name="heart_rate" class="form-control form-control-sm" placeholder="72">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-bold">Temp (°C)</label>
+                                            <input type="text" name="temperature" class="form-control form-control-sm" placeholder="36.5">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-bold">Weight (kg)</label>
+                                            <input type="text" name="weight" class="form-control form-control-sm" placeholder="70">
+                                        </div>
                                         <div class="col-md-6">
                                             <label class="form-label small fw-bold">Symptoms</label>
                                             <textarea name="symptoms" class="form-control form-control-sm" rows="3" placeholder="Enter patient symptoms (e.g. Cough, high grade fever)" required></textarea>

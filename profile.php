@@ -64,6 +64,8 @@ if (isset($_POST['update_profile'])) {
 
         if ($new_password && $new_password !== $confirm_password) {
             set_flash('Passwords do not match!', 'danger');
+        } elseif ($new_password && !preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/', $new_password)) {
+            set_flash('Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.', 'danger');
         } else {
             $sql = "UPDATE users SET full_name = ?, email = ?, avatar = ?";
             $params = [$full_name, $email, $avatar_path];
@@ -154,6 +156,12 @@ if (isset($_POST['update_profile'])) {
                                     <i class="far fa-eye"></i>
                                 </button>
                             </div>
+                            <div id="password-strength-container" class="mt-2 d-none">
+                                <div class="progress" style="height: 6px; border-radius: 3px;">
+                                    <div id="strength-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div id="strength-text" class="form-text mt-1 text-muted" style="font-size: 11px; font-weight: 500;">Strength: Weak</div>
+                            </div>
                         </div>
 
                         <div class="col-md-6 mb-4">
@@ -169,10 +177,57 @@ if (isset($_POST['update_profile'])) {
 
                     <div class="pt-3">
                         <button type="submit" name="update_profile" class="btn btn-primary w-100" style="padding: 14px; font-size: 15px; border-radius: 12px; font-weight: 600; box-shadow: 0 4px 15px var(--accent-glow);">
-                            Save Changes
+                             Save Changes
                         </button>
                     </div>
                 </form>
+
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const newPasswordInput = document.querySelector('input[name="new_password"]');
+                    const strengthContainer = document.getElementById('password-strength-container');
+                    const strengthBar = document.getElementById('strength-bar');
+                    const strengthText = document.getElementById('strength-text');
+                    
+                    if (newPasswordInput) {
+                        newPasswordInput.addEventListener('input', function() {
+                            const val = newPasswordInput.value;
+                            if (!val) {
+                                strengthContainer.classList.add('d-none');
+                                return;
+                            }
+                            
+                            strengthContainer.classList.remove('d-none');
+                            
+                            let score = 0;
+                            if (val.length >= 8) score++;
+                            if (/[A-Z]/.test(val)) score++;
+                            if (/[a-z]/.test(val)) score++;
+                            if (/[0-9]/.test(val)) score++;
+                            if (/[@$!%*?&#]/.test(val)) score++;
+                            
+                            let percent = (score / 5) * 100;
+                            let color = 'bg-danger';
+                            let text = 'Too Weak';
+                            
+                            if (score === 5) {
+                                color = 'bg-success';
+                                text = 'Strong & Secure';
+                            } else if (score >= 3) {
+                                color = 'bg-warning';
+                                text = 'Medium';
+                            } else if (score >= 2) {
+                                color = 'bg-danger';
+                                text = 'Weak';
+                            }
+                            
+                            strengthBar.className = 'progress-bar ' + color;
+                            strengthBar.style.width = percent + '%';
+                            strengthText.innerText = 'Strength: ' + text;
+                        });
+                    }
+                });
+                </script>
             </div>
         </div>
 

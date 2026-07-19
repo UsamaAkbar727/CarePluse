@@ -176,8 +176,11 @@ $doctors = $stmt->fetchAll();
                                 <td>
                                     <span class="fw-bold"><?= $d['appt_count'] ?></span>
                                 </td>
-                                <?php if ($user_role === 'admin'): ?>
                                 <td class="text-end pe-4">
+                                    <a href="doctor_schedule.php?doctor_id=<?= $d['id'] ?>" class="btn btn-sm btn-icon btn-light rounded-circle me-1" title="View Shift Schedule">
+                                        <i class="fas fa-calendar-alt text-success"></i>
+                                    </a>
+                                    <?php if ($user_role === 'admin'): ?>
                                     <button class="btn btn-sm btn-icon btn-light rounded-circle me-1 edit-doctor" 
                                             data-id="<?= $d['id'] ?>"
                                             data-name="<?= esc($d['name']) ?>"
@@ -185,14 +188,14 @@ $doctors = $stmt->fetchAll();
                                             data-email="<?= esc($d['email']) ?>"
                                             data-phone="<?= esc($d['phone']) ?>"
                                             data-status="<?= $d['status'] ?>"
-                                            data-bs-toggle="modal" data-bs-target="#doctorModal">
+                                            data-bs-toggle="modal" data-bs-target="#doctorModal" title="Edit Profile">
                                         <i class="fas fa-edit text-primary"></i>
                                     </button>
-                                    <button onclick="confirmDelete('doctors.php?delete=<?= $d['id'] ?>&token=<?= generate_csrf_token() ?>')" class="btn btn-sm btn-icon btn-light rounded-circle">
+                                    <button onclick="confirmDelete('doctors.php?delete=<?= $d['id'] ?>&token=<?= generate_csrf_token() ?>')" class="btn btn-sm btn-icon btn-light rounded-circle" title="Delete Profile">
                                         <i class="fas fa-trash text-danger"></i>
                                     </button>
+                                    <?php endif; ?>
                                 </td>
-                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>

@@ -146,6 +146,9 @@ $patients = $stmt->fetchAll();
                                 </td>
                                 <td><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
                                 <td class="text-end pe-4">
+                                    <a href="patient_history.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-icon btn-light rounded-circle me-1" title="View Patient Medical Dossier">
+                                        <i class="fas fa-file-medical text-success"></i>
+                                    </a>
                                     <button class="btn btn-sm btn-icon btn-light rounded-circle me-1 edit-patient" 
                                             data-id="<?= $p['id'] ?>"
                                             data-name="<?= esc($p['name']) ?>"

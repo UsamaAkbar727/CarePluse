@@ -56,23 +56,33 @@ if (isset($_POST['save_user'])) {
                 $sql = "UPDATE users SET username=?, email=?, full_name=?, role=?, is_active=?";
                 $params = [$username, $email, $full_name, $role, $is_active];
                 
+                $valid_password = true;
                 if (!empty($password)) {
-                    $sql .= ", password=?";
-                    $params[] = password_hash($password, PASSWORD_DEFAULT);
+                    if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/', $password)) {
+                        set_flash('Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.', 'danger');
+                        $valid_password = false;
+                    } else {
+                        $sql .= ", password=?";
+                        $params[] = password_hash($password, PASSWORD_DEFAULT);
+                    }
                 }
                 
-                $sql .= " WHERE id=?";
-                $params[] = $id;
+                if ($valid_password) {
+                    $sql .= " WHERE id=?";
+                    $params[] = $id;
 
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute($params);
-                
-                audit_log($pdo, 'UPDATE', 'users', $id, ['username'=>$old_data['username']], ['username'=>$username, 'role'=>$role]);
-                set_flash('User account updated.');
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute($params);
+                    
+                    audit_log($pdo, 'UPDATE', 'users', $id, ['username'=>$old_data['username']], ['username'=>$username, 'role'=>$role]);
+                    set_flash('User account updated.');
+                }
             } else {
                 // Create
                 if (empty($password)) {
                     set_flash('Password is required for new users.', 'danger');
+                } elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/', $password)) {
+                    set_flash('Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.', 'danger');
                 } else {
                     $stmt = $pdo->prepare("INSERT INTO users (username, password, email, full_name, role, is_active) VALUES (?, ?, ?, ?, ?, ?)");
                     $stmt->execute([$username, password_hash($password, PASSWORD_DEFAULT), $email, $full_name, $role, $is_active]);

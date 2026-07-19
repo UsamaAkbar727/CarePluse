@@ -36,6 +36,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'], $_POST['status'
             // Audit Log
             audit_log($pdo, 'UPDATE_STATUS', 'appointments', $id, ['status' => $old_status], ['status' => $status]);
             
+            // Auto-generate invoice if status is 'completed'
+            if ($status === 'completed') {
+                $chk_stmt = $pdo->prepare('SELECT id FROM invoices WHERE appointment_id = ?');
+                $chk_stmt->execute([$id]);
+                if (!$chk_stmt->fetchColumn()) {
+                    $appt_stmt = $pdo->prepare('SELECT patient_id FROM appointments WHERE id = ?');
+                    $appt_stmt->execute([$id]);
+                    $patient_id = $appt_stmt->fetchColumn();
+
+                    if ($patient_id) {
+                        // Default consultation fee: $50.00, tax 5%: $2.50, net: $52.50
+                        $inv_stmt = $pdo->prepare('INSERT INTO invoices (appointment_id, patient_id, total_amount, tax, net_amount, status) VALUES (?, ?, 50.00, 2.50, 52.50, "unpaid")');
+                        $inv_stmt->execute([$id, $patient_id]);
+                        $invoice_id = $pdo->lastInsertId();
+
+                        $item_stmt = $pdo->prepare('INSERT INTO invoice_items (invoice_id, item_description, quantity, unit_price, total_price) VALUES (?, "Doctor Consultation Fee", 1, 50.00, 50.00)');
+                        $item_stmt->execute([$invoice_id]);
+                    }
+                }
+            }
+
             set_flash("Appointment #$id status updated to " . ucfirst($status) . ".", "success");
         } else {
             set_flash("Failed to update status.", "danger");

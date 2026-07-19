@@ -15,12 +15,20 @@ $stats = [
     'today_appts' => 0
 ];
 
+$financials = [
+    'revenue' => 0.00,
+    'pending' => 0.00
+];
+
 if ($user_role === 'admin' || $user_role === 'receptionist') {
     $stats['total_appts'] = $pdo->query('SELECT COUNT(*) FROM appointments')->fetchColumn();
     $stats['pending_appts'] = $pdo->query("SELECT COUNT(*) FROM appointments WHERE status = 'pending'")->fetchColumn();
     $stats['total_patients'] = $pdo->query('SELECT COUNT(*) FROM patients')->fetchColumn();
     $stats['total_doctors'] = $pdo->query('SELECT COUNT(*) FROM doctors WHERE status = "available"')->fetchColumn();
     $stats['today_appts'] = $pdo->query('SELECT COUNT(*) FROM appointments WHERE DATE(app_date) = CURDATE()')->fetchColumn();
+    
+    $financials['revenue'] = $pdo->query("SELECT SUM(net_amount) FROM invoices WHERE status = 'paid'")->fetchColumn() ?: 0.00;
+    $financials['pending'] = $pdo->query("SELECT SUM(net_amount) FROM invoices WHERE status = 'unpaid'")->fetchColumn() ?: 0.00;
 } elseif ($user_role === 'doctor') {
     $doctor_id = get_doctor_id($pdo);
 
@@ -222,6 +230,40 @@ foreach ($spec_data as $row) {
         <div class="col-lg-3 col-md-6"></div>
     <?php endif; ?>
 </div>
+
+<?php if (in_array($user_role, ['admin', 'receptionist'])): ?>
+<!-- Financial Ledger Dashboard Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100 border-0"
+            style="background: linear-gradient(145deg, #ffffff, #f8fafc); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-radius: 20px !important;">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted fw-bold mb-2 text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Revenue Collected (Paid Bills)</h6>
+                    <h2 class="fw-bolder mb-0 text-success" style="font-size: 32px; letter-spacing: -1px;">$<?= number_format($financials['revenue'], 2) ?></h2>
+                </div>
+                <div style="width: 54px; height: 54px; background: rgba(16, 185, 129, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #10b981;">
+                    <i class="fas fa-hand-holding-usd fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100 border-0"
+            style="background: linear-gradient(145deg, #ffffff, #f8fafc); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-radius: 20px !important;">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="fw-bold mb-2 text-uppercase" style="color: #ef4444; font-size: 11px; letter-spacing: 0.5px;">Outstanding Accounts Receivable</h6>
+                    <h2 class="fw-bolder mb-0" style="color: #ef4444; font-size: 32px; letter-spacing: -1px;">$<?= number_format($financials['pending'], 2) ?></h2>
+                </div>
+                <div style="width: 54px; height: 54px; background: rgba(239, 68, 68, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #ef4444;">
+                    <i class="fas fa-file-invoice-dollar fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- Charts Section -->
 <div class="row g-4 mb-4">
