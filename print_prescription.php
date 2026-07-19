@@ -327,6 +327,24 @@ if (!empty($pres['date_of_birth'])) {
             </div>
         </div>
 
+        <!-- Patient Vitals Section -->
+        <?php if (!empty($pres['blood_pressure']) || !empty($pres['heart_rate']) || !empty($pres['temperature']) || !empty($pres['weight'])): ?>
+        <div style="background: #fdfdfd; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 18px; margin-bottom: 25px; font-size: 13px; display: flex; justify-content: space-around; align-items: center; border-left: 4px solid #4f46e5;">
+            <?php if (!empty($pres['blood_pressure'])): ?>
+                <div><strong>Blood Pressure:</strong> <?= esc($pres['blood_pressure']) ?></div>
+            <?php endif; ?>
+            <?php if (!empty($pres['heart_rate'])): ?>
+                <div><strong>Heart Rate:</strong> <?= esc($pres['heart_rate']) ?> bpm</div>
+            <?php endif; ?>
+            <?php if (!empty($pres['temperature'])): ?>
+                <div><strong>Temperature:</strong> <?= esc($pres['temperature']) ?> °C</div>
+            <?php endif; ?>
+            <?php if (!empty($pres['weight'])): ?>
+                <div><strong>Weight:</strong> <?= esc($pres['weight']) ?> kg</div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
         <!-- Rx Body -->
         <div class="rx-section">
             <div class="rx-symbol">Rₓ</div>

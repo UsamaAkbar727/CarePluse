@@ -20,6 +20,11 @@ $financials = [
     'pending' => 0.00
 ];
 
+$bed_stats = [
+    'total' => 0,
+    'occupied' => 0
+];
+
 if ($user_role === 'admin' || $user_role === 'receptionist') {
     $stats['total_appts'] = $pdo->query('SELECT COUNT(*) FROM appointments')->fetchColumn();
     $stats['pending_appts'] = $pdo->query("SELECT COUNT(*) FROM appointments WHERE status = 'pending'")->fetchColumn();
@@ -29,6 +34,9 @@ if ($user_role === 'admin' || $user_role === 'receptionist') {
     
     $financials['revenue'] = $pdo->query("SELECT SUM(net_amount) FROM invoices WHERE status = 'paid'")->fetchColumn() ?: 0.00;
     $financials['pending'] = $pdo->query("SELECT SUM(net_amount) FROM invoices WHERE status = 'unpaid'")->fetchColumn() ?: 0.00;
+    
+    $bed_stats['total'] = $pdo->query("SELECT COUNT(*) FROM beds")->fetchColumn() ?: 0;
+    $bed_stats['occupied'] = $pdo->query("SELECT COUNT(*) FROM beds WHERE status = 'occupied'")->fetchColumn() ?: 0;
 } elseif ($user_role === 'doctor') {
     $doctor_id = get_doctor_id($pdo);
 
@@ -232,9 +240,9 @@ foreach ($spec_data as $row) {
 </div>
 
 <?php if (in_array($user_role, ['admin', 'receptionist'])): ?>
-<!-- Financial Ledger Dashboard Cards -->
+<!-- Financial & IPD Occupancy Dashboard Cards -->
 <div class="row g-4 mb-4">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card h-100 border-0"
             style="background: linear-gradient(145deg, #ffffff, #f8fafc); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-radius: 20px !important;">
             <div class="card-body p-4 d-flex align-items-center justify-content-between">
@@ -248,16 +256,30 @@ foreach ($spec_data as $row) {
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card h-100 border-0"
             style="background: linear-gradient(145deg, #ffffff, #f8fafc); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-radius: 20px !important;">
             <div class="card-body p-4 d-flex align-items-center justify-content-between">
                 <div>
-                    <h6 class="fw-bold mb-2 text-uppercase" style="color: #ef4444; font-size: 11px; letter-spacing: 0.5px;">Outstanding Accounts Receivable</h6>
+                    <h6 class="fw-bold mb-2 text-uppercase" style="color: #ef4444; font-size: 11px; letter-spacing: 0.5px;">Outstanding Receivables</h6>
                     <h2 class="fw-bolder mb-0" style="color: #ef4444; font-size: 32px; letter-spacing: -1px;">$<?= number_format($financials['pending'], 2) ?></h2>
                 </div>
                 <div style="width: 54px; height: 54px; background: rgba(239, 68, 68, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #ef4444;">
                     <i class="fas fa-file-invoice-dollar fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-0"
+            style="background: linear-gradient(145deg, #ffffff, #f8fafc); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-radius: 20px !important;">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted fw-bold mb-2 text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Inpatient Bed Occupancy</h6>
+                    <h2 class="fw-bolder mb-0 text-primary" style="font-size: 32px; letter-spacing: -1px;"><?= $bed_stats['occupied'] ?> / <?= $bed_stats['total'] ?></h2>
+                </div>
+                <div style="width: 54px; height: 54px; background: rgba(79, 70, 229, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--accent);">
+                    <i class="fas fa-procedures fs-4"></i>
                 </div>
             </div>
         </div>

@@ -88,28 +88,43 @@ $total_pages = ceil($total_logs / $per_page);
                                     <small class="d-block text-muted">ID: <?= $l['record_id'] ?></small>
                                 </td>
                                 <td style="max-width: 300px;">
-                                    <?php $old_val = $l['old_value'] ?? null;
-                                    $new_val = $l['new_value'] ?? null; ?>
-                                    <?php if ($old_val || $new_val): ?>
-                                        <button class="btn btn-sm btn-link text-decoration-none p-0" type="button"
-                                            data-bs-toggle="collapse" data-bs-target="#data-<?= $l['id'] ?>">
-                                            View Details
-                                        </button>
-                                        <div class="collapse mt-2" id="data-<?= $l['id'] ?>">
-                                            <div class="bg-light p-2 rounded small border">
-                                                <?php if ($old_val): ?>
-                                                    <strong>Before:</strong>
-                                                    <pre class="mb-1" style="font-size: 10px;"><?= esc($old_val) ?></pre>
-                                                <?php endif; ?>
-                                                <?php if ($new_val): ?>
-                                                    <strong>After:</strong>
-                                                    <pre class="mb-0" style="font-size: 10px;"><?= esc($new_val) ?></pre>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                    <?php else: ?>
-                                        <span class="text-muted small">N/A</span>
-                                    <?php endif; ?>
+                                     <?php 
+                                     $old_val = $l['old_values'] ?? null;
+                                     $new_val = $l['new_values'] ?? null; 
+                                     
+                                     if ($old_val) {
+                                         $old_arr = json_decode($old_val, true);
+                                         if (json_last_error() === JSON_ERROR_NONE && is_array($old_arr)) {
+                                             $old_val = json_encode($old_arr, JSON_PRETTY_PRINT);
+                                         }
+                                     }
+                                     if ($new_val) {
+                                         $new_arr = json_decode($new_val, true);
+                                         if (json_last_error() === JSON_ERROR_NONE && is_array($new_arr)) {
+                                             $new_val = json_encode($new_arr, JSON_PRETTY_PRINT);
+                                         }
+                                     }
+                                     ?>
+                                     <?php if ($old_val || $new_val): ?>
+                                         <button class="btn btn-sm btn-link text-decoration-none p-0" type="button"
+                                             data-bs-toggle="collapse" data-bs-target="#data-<?= $l['id'] ?>">
+                                             View Details
+                                         </button>
+                                         <div class="collapse mt-2" id="data-<?= $l['id'] ?>">
+                                             <div class="bg-light p-2 rounded small border">
+                                                 <?php if ($old_val): ?>
+                                                     <strong>Before:</strong>
+                                                     <pre class="mb-1" style="font-size: 10px;"><?= esc($old_val) ?></pre>
+                                                 <?php endif; ?>
+                                                 <?php if ($new_val): ?>
+                                                     <strong>After:</strong>
+                                                     <pre class="mb-0" style="font-size: 10px;"><?= esc($new_val) ?></pre>
+                                                 <?php endif; ?>
+                                             </div>
+                                         </div>
+                                     <?php else: ?>
+                                         <span class="text-muted small">N/A</span>
+                                     <?php endif; ?>
                                 </td>
                                 <td class="pe-4 small text-muted"><?= esc($l['ip_address']) ?></td>
                             </tr>
