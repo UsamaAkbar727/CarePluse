@@ -5,7 +5,6 @@ require 'includes/header.php';
 $pdo = get_db_pdo();
 $id = $_GET['id'] ?? 0;
 
-// Fetch appointment with patient and doctor details
 $stmt = $pdo->prepare('
     SELECT 
         a.*, 
@@ -54,7 +53,6 @@ $pdo->exec("
     )
 ");
 
-// Fetch prescription if exists
 $pres_stmt = $pdo->prepare('SELECT * FROM prescriptions WHERE appointment_id = ?');
 $pres_stmt->execute([$id]);
 $prescription = $pres_stmt->fetch();
@@ -472,7 +470,6 @@ $status_class = match ($appt['status']) {
         </div>
     </div>
 
-    <!-- Sidebar Info -->
     <div class="col-lg-4">
         <div class="card border-0 mb-4 shadow-sm">
             <div class="card-header bg-white border-0 pt-4 px-4 pb-0">

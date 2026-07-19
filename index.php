@@ -422,8 +422,7 @@ foreach ($spec_data as $row) {
         <?php if (array_sum($chart_trend_values) > 0): ?>
         // Trend Chart (Line Chart)
         const trendCtx = document.getElementById('trendChart').getContext('2d');
-        
-        // Create a beautiful gradient for the primary line
+
         const primaryGradient = trendCtx.createLinearGradient(0, 0, 0, 300);
         primaryGradient.addColorStop(0, 'rgba(79, 70, 229, 0.3)');
         primaryGradient.addColorStop(1, 'rgba(79, 70, 229, 0)');

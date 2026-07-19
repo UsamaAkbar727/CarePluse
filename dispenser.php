@@ -5,7 +5,6 @@ require_role(['admin', 'pharmacist']);
 
 $pdo = get_db_pdo();
 
-// Handle drug dispensing
 if (isset($_POST['dispense_meds'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         set_flash('Invalid security token.', 'danger');
@@ -17,7 +16,7 @@ if (isset($_POST['dispense_meds'])) {
         if ($prescription_id <= 0 || empty($med_ids)) {
             set_flash('Please select drugs to dispense.', 'danger');
         } else {
-            // Fetch prescription info
+
             $stmt = $pdo->prepare("
                 SELECT pr.*, a.patient_id
                 FROM prescriptions pr
@@ -30,14 +29,13 @@ if (isset($_POST['dispense_meds'])) {
             if ($pres) {
                 $appt_id = $pres['appointment_id'];
                 $patient_id = $pres['patient_id'];
-                
-                // Fetch or create invoice
+
                 $inv_stmt = $pdo->prepare("SELECT id FROM invoices WHERE appointment_id = ?");
                 $inv_stmt->execute([$appt_id]);
                 $invoice_id = $inv_stmt->fetchColumn();
                 
                 if (!$invoice_id) {
-                    // Create invoice
+
                     $ins_inv = $pdo->prepare("INSERT INTO invoices (appointment_id, patient_id, total_amount, tax, net_amount, status) VALUES (?, ?, 0, 0, 0, 'unpaid')");
                     $ins_inv->execute([$appt_id, $patient_id]);
                     $invoice_id = $pdo->lastInsertId();
@@ -52,7 +50,7 @@ if (isset($_POST['dispense_meds'])) {
                     $qty = (int)$quantities[$i];
                     
                     if ($med_id > 0 && $qty > 0) {
-                        // Fetch drug pricing and stock
+
                         $med_stmt = $pdo->prepare("SELECT name, stock_qty, price_per_unit FROM medicines WHERE id = ?");
                         $med_stmt->execute([$med_id]);
                         $medicine = $med_stmt->fetch();
@@ -60,16 +58,13 @@ if (isset($_POST['dispense_meds'])) {
                         if ($medicine && $medicine['stock_qty'] >= $qty) {
                             $price_charged = $qty * $medicine['price_per_unit'];
                             $dispensed_total += $price_charged;
-                            
-                            // 1. Deduct stock
+
                             $up_stock = $pdo->prepare("UPDATE medicines SET stock_qty = stock_qty - ? WHERE id = ?");
                             $up_stock->execute([$qty, $med_id]);
-                            
-                            // 2. Insert into prescription_items
+
                             $ins_item = $pdo->prepare("INSERT INTO prescription_items (prescription_id, medicine_id, quantity, price_charged, status) VALUES (?, ?, ?, ?, 'dispensed')");
                             $ins_item->execute([$prescription_id, $med_id, $qty, $medicine['price_per_unit']]);
-                            
-                            // 3. Add to invoice items
+
                             $inv_item = $pdo->prepare("INSERT INTO invoice_items (invoice_id, item_description, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)");
                             $desc = $medicine['name'] . " (Pharmacy Dispensation)";
                             $inv_item->execute([$invoice_id, $desc, $qty, $medicine['price_per_unit'], $price_charged]);
@@ -80,12 +75,11 @@ if (isset($_POST['dispense_meds'])) {
                 }
                 
                 if ($dispensed_count > 0) {
-                    // Recalculate invoice totals
+
                     $sum_stmt = $pdo->prepare("SELECT SUM(total_price) FROM invoice_items WHERE invoice_id = ?");
                     $sum_stmt->execute([$invoice_id]);
                     $gross = $sum_stmt->fetchColumn() ?: 0.00;
-                    
-                    // Fetch existing settings
+
                     $inv_set = $pdo->prepare("SELECT discount, tax, total_amount FROM invoices WHERE id = ?");
                     $inv_set->execute([$invoice_id]);
                     $inv_data = $inv_set->fetch();
@@ -100,8 +94,7 @@ if (isset($_POST['dispense_meds'])) {
                     
                     $up_inv = $pdo->prepare("UPDATE invoices SET total_amount = ?, tax = ?, net_amount = ? WHERE id = ?");
                     $up_inv->execute([$gross, $tax, $net, $invoice_id]);
-                    
-                    // Audit log
+
                     audit_log($pdo, 'DISPENSE_PRESCRIPTION', 'prescription_items', $prescription_id, null, ['drugs_count' => $dispensed_count, 'total_billed' => $dispensed_total]);
                     
                     set_flash("Dispensed $dispensed_count drugs! Billing total of $" . number_format($dispensed_total, 2) . " has been posted to invoice #INV-$invoice_id.");
@@ -116,7 +109,6 @@ if (isset($_POST['dispense_meds'])) {
     }
 }
 
-// Fetch all prescriptions that have NOT been dispensed yet or list recent ones
 // (A prescription is pending dispensing if it has no rows in prescription_items or we want to display prescriptions)
 $prescriptions = $pdo->query("
     SELECT pr.*, p.name as patient_name, p.phone as patient_phone, d.name as doctor_name, a.app_date
@@ -127,7 +119,6 @@ $prescriptions = $pdo->query("
     ORDER BY pr.created_at DESC
 ")->fetchAll();
 
-// Fetch medicines catalogue for search select
 $medicines_list = $pdo->query("SELECT id, name, type, stock_qty, price_per_unit FROM medicines WHERE stock_qty > 0 ORDER BY name ASC")->fetchAll();
 ?>
 
@@ -143,7 +134,7 @@ $medicines_list = $pdo->query("SELECT id, name, type, stock_qty, price_per_unit 
 </div>
 
 <div class="row g-4">
-    <!-- Prescriptions Queue -->
+
     <div class="col-lg-6 col-12">
         <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
             <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
@@ -161,7 +152,7 @@ $medicines_list = $pdo->query("SELECT id, name, type, stock_qty, price_per_unit 
                     <div class="list-group list-group-flush gap-3">
                         <?php foreach ($prescriptions as $pres): ?>
                             <?php
-                            // Check if already dispensed any items
+
                             $disp_stmt = $pdo->prepare("SELECT COUNT(*) FROM prescription_items WHERE prescription_id = ?");
                             $disp_stmt->execute([$pres['id']]);
                             $is_dispensed = $disp_stmt->fetchColumn() > 0;
@@ -190,7 +181,6 @@ $medicines_list = $pdo->query("SELECT id, name, type, stock_qty, price_per_unit 
         </div>
     </div>
 
-    <!-- Dispensing Action Dashboard -->
     <div class="col-lg-6 col-12">
         <div class="card border-0 shadow-sm rounded-4 h-100 bg-white" id="dispenser_panel" style="display: none;">
             <div class="card-header bg-primary text-white p-4">
@@ -286,7 +276,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Add / Remove Drug Rows dynamic control
     const container = document.getElementById('dispensation_rows_container');
     const addBtn = document.getElementById('add_drug_row_btn');
     

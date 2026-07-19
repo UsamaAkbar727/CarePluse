@@ -5,7 +5,6 @@ require_role(['admin', 'lab_tech']);
 
 $pdo = get_db_pdo();
 
-// Handle Report Results Submission
 if (isset($_POST['submit_results'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         set_flash('Invalid security token.', 'danger');
@@ -16,7 +15,7 @@ if (isset($_POST['submit_results'])) {
         if ($request_id <= 0 || empty($results)) {
             set_flash('Please fill in test results description.', 'danger');
         } else {
-            // Fetch request details
+
             $stmt = $pdo->prepare("
                 SELECT lr.*, lt.name as test_name, lt.cost, a.patient_id
                 FROM lab_requests lr
@@ -32,35 +31,31 @@ if (isset($_POST['submit_results'])) {
                 $patient_id = $request['patient_id'];
                 $test_name = $request['test_name'];
                 $cost = $request['cost'];
-                
-                // 1. Update lab request status & results
+
                 $up_stmt = $pdo->prepare("UPDATE lab_requests SET result_details = ?, status = 'completed' WHERE id = ?");
                 $up_stmt->execute([$results, $request_id]);
-                
-                // 2. Fetch or create invoice for this appointment
+
                 $inv_stmt = $pdo->prepare("SELECT id FROM invoices WHERE appointment_id = ?");
                 $inv_stmt->execute([$appt_id]);
                 $invoice_id = $inv_stmt->fetchColumn();
                 
                 if (!$invoice_id) {
-                    // Create invoice
+
                     $tax = $cost * 0.05;
                     $net = $cost + $tax;
                     $ins_inv = $pdo->prepare("INSERT INTO invoices (appointment_id, patient_id, total_amount, tax, net_amount, status) VALUES (?, ?, ?, ?, ?, 'unpaid')");
                     $ins_inv->execute([$appt_id, $patient_id, $cost, $tax, $net]);
                     $invoice_id = $pdo->lastInsertId();
                 } else {
-                    // Update invoice totals by adding this test item
+
                     $inv_items_stmt = $pdo->prepare("INSERT INTO invoice_items (invoice_id, item_description, quantity, unit_price, total_price) VALUES (?, ?, 1, ?, ?)");
                     $inv_items_stmt->execute([$invoice_id, $test_name . " (Lab Diagnostics)", $cost, $cost]);
-                    
-                    // Recalculate totals
+
                     // Calculate gross sum
                     $sum_stmt = $pdo->prepare("SELECT SUM(total_price) FROM invoice_items WHERE invoice_id = ?");
                     $sum_stmt->execute([$invoice_id]);
                     $gross = $sum_stmt->fetchColumn() ?: 0.00;
-                    
-                    // Fetch existing settings
+
                     $inv_set = $pdo->prepare("SELECT discount, tax, total_amount FROM invoices WHERE id = ?");
                     $inv_set->execute([$invoice_id]);
                     $inv_data = $inv_set->fetch();
@@ -84,8 +79,7 @@ if (isset($_POST['submit_results'])) {
                     $inv_items_stmt = $pdo->prepare("INSERT INTO invoice_items (invoice_id, item_description, quantity, unit_price, total_price) VALUES (?, ?, 1, ?, ?)");
                     $inv_items_stmt->execute([$invoice_id, $test_name . " (Lab Diagnostics)", $cost, $cost]);
                 }
-                
-                // Audit log
+
                 audit_log($pdo, 'COMPLETE_LAB_TEST', 'lab_requests', $request_id, ['status' => 'pending'], ['status' => 'completed', 'results' => $results]);
                 
                 set_flash("Lab results submitted! Diagnostics charge of $" . number_format($cost, 2) . " has been posted to patient's bill.");
@@ -98,7 +92,6 @@ if (isset($_POST['submit_results'])) {
     }
 }
 
-// Fetch pending and completed lab requests
 $status_filter = $_GET['status'] ?? 'pending';
 
 $stmt = $pdo->prepare("
@@ -191,7 +184,6 @@ $requests = $stmt->fetchAll();
     </div>
 </div>
 
-<!-- Submit Result Modal -->
 <div class="modal fade" id="resultModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4">

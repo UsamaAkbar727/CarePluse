@@ -5,7 +5,6 @@ require_once 'includes/header.php';
 $pdo = get_db_pdo();
 $patient_id = $_GET['id'] ?? 0;
 
-// Fetch patient
 $stmt = $pdo->prepare("SELECT * FROM patients WHERE id = ?");
 $stmt->execute([$patient_id]);
 $patient = $stmt->fetch();
@@ -16,7 +15,6 @@ if (!$patient) {
     exit();
 }
 
-// Fetch encounters (prescriptions / clinical records)
 $stmt = $pdo->prepare("
     SELECT pr.*, d.name as doctor_name, d.specialization, a.app_date, a.app_time
     FROM prescriptions pr
@@ -28,7 +26,6 @@ $stmt = $pdo->prepare("
 $stmt->execute([$patient_id]);
 $encounters = $stmt->fetchAll();
 
-// Fetch invoices
 $stmt = $pdo->prepare("
     SELECT i.*, a.app_date 
     FROM invoices i
@@ -39,7 +36,6 @@ $stmt = $pdo->prepare("
 $stmt->execute([$patient_id]);
 $invoices = $stmt->fetchAll();
 
-// Prepare charts data (chronological order)
 $chart_encounters = array_reverse($encounters);
 $chart_dates = [];
 $bp_systolic = [];
@@ -164,8 +160,7 @@ foreach ($chart_encounters as $enc) {
             
             <div class="card-body p-4">
                 <div class="tab-content" id="ehrTabContent">
-                    
-                    <!-- TIMELINE TAB -->
+
                     <div class="tab-pane fade show active" id="timeline" role="tabpanel" aria-labelledby="timeline-tab">
                         <?php if (empty($encounters)): ?>
                             <div class="text-center py-5">
@@ -274,8 +269,7 @@ foreach ($chart_encounters as $enc) {
                             </div>
                         <?php endif; ?>
                     </div>
-                    
-                    <!-- VITALS TRENDS TAB -->
+
                     <div class="tab-pane fade" id="vitals" role="tabpanel" aria-labelledby="vitals-tab">
                         <?php if (empty($encounters)): ?>
                             <div class="text-center py-5">

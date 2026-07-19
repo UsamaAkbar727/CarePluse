@@ -5,14 +5,12 @@ require_role(['admin', 'receptionist']);
 
 $pdo = get_db_pdo();
 
-// Handle Discharge Action
 if (isset($_GET['discharge'])) {
     if (!verify_csrf_token($_GET['token'] ?? '')) {
         set_flash('Invalid security token.', 'danger');
     } else {
         $admission_id = (int)$_GET['discharge'];
-        
-        // Fetch admission details
+
         $stmt = $pdo->prepare("
             SELECT ad.*, p.name as patient_name, b.bed_number, b.id as bed_id
             FROM admissions ad
@@ -36,39 +34,32 @@ if (isset($_GET['discharge'])) {
             if ($days <= 0) $days = 1;
             
             $total_room_cost = $days * $daily_charges;
-            
-            // 1. Update bed status to available
+
             $stmt = $pdo->prepare("UPDATE beds SET status = 'available' WHERE id = ?");
             $stmt->execute([$bed_id]);
-            
-            // 2. Update admission record
+
             $stmt = $pdo->prepare("UPDATE admissions SET discharge_date = ?, status = 'discharged' WHERE id = ?");
             $stmt->execute([$today, $admission_id]);
-            
-            // 3. Create a final invoice for room charges
-            // Create dummy completed appointment or link to 0? We can create an invoice with appointment_id = 0 (or nullable, but let's check schema: appointment_id in invoices is not nullable by default in our update_database.php schema unless we drop constraint, or we can look up patient's latest appointment and link to it, or create a mock appointment or let the invoice handle it. Wait, the invoices table has appointment_id INT NOT NULL. Let's see: we can fetch patient's latest appointment, or we can use that appointment's ID, or let's look up if there's any appointment for the patient. Let's find patient's latest appointment id).
+
+            // Find latest appointment to link invoice, or create a stub if none exists
             $appt_stmt = $pdo->prepare("SELECT id FROM appointments WHERE patient_id = ? ORDER BY app_date DESC LIMIT 1");
             $appt_stmt->execute([$patient_id]);
             $appt_id = $appt_stmt->fetchColumn() ?: 0;
             
             if ($appt_id === 0) {
-                // Let's create a placeholder appointment so database integrity holds
-                // Fetch first available doctor
                 $doc_id = $pdo->query("SELECT id FROM doctors LIMIT 1")->fetchColumn();
                 $ins_appt = $pdo->prepare("INSERT INTO appointments (patient_id, doctor_id, app_date, app_time, status, notes) VALUES (?, ?, CURDATE(), '00:00:00', 'completed', 'Room Admission Discharge Placeholder')");
                 $ins_appt->execute([$patient_id, $doc_id]);
                 $appt_id = $pdo->lastInsertId();
             }
-            
-            // Create invoice: gross total = room charges, tax 5%
+
             $tax = $total_room_cost * 0.05;
             $net = $total_room_cost + $tax;
             
             $inv_stmt = $pdo->prepare("INSERT INTO invoices (appointment_id, patient_id, total_amount, tax, net_amount, status) VALUES (?, ?, ?, ?, ?, 'unpaid')");
             $inv_stmt->execute([$appt_id, $patient_id, $total_room_cost, $tax, $net]);
             $invoice_id = $pdo->lastInsertId();
-            
-            // Add invoice item line
+
             $item_stmt = $pdo->prepare("INSERT INTO invoice_items (invoice_id, item_description, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)");
             $desc = "Room Admission Charges: Bed " . $admission['bed_number'] . " ($days Days @ $" . number_format($daily_charges, 2) . "/day)";
             $item_stmt->execute([$invoice_id, $desc, 1, $total_room_cost, $total_room_cost]);
@@ -85,7 +76,6 @@ if (isset($_GET['discharge'])) {
     exit();
 }
 
-// Handle Patient Admission
 if (isset($_POST['admit_patient'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         set_flash('Invalid security token.', 'danger');
@@ -99,18 +89,17 @@ if (isset($_POST['admit_patient'])) {
         if ($patient_id <= 0 || $bed_id <= 0 || $doctor_id <= 0 || $charges <= 0) {
             set_flash('Please fill in all admission details correctly.', 'danger');
         } else {
-            // Check if patient is already admitted
+
             $chk_stmt = $pdo->prepare("SELECT id FROM admissions WHERE patient_id = ? AND status = 'admitted'");
             $chk_stmt->execute([$patient_id]);
             if ($chk_stmt->fetch()) {
                 set_flash('This patient is already admitted in the hospital.', 'danger');
             } else {
-                // 1. Insert admission
+
                 $stmt = $pdo->prepare("INSERT INTO admissions (patient_id, bed_id, doctor_id, admission_date, room_charges, status) VALUES (?, ?, ?, ?, ?, 'admitted')");
                 $stmt->execute([$patient_id, $bed_id, $doctor_id, $admit_date, $charges]);
                 $admission_id = $pdo->lastInsertId();
-                
-                // 2. Mark bed as occupied
+
                 $stmt = $pdo->prepare("UPDATE beds SET status = 'occupied' WHERE id = ?");
                 $stmt->execute([$bed_id]);
                 
@@ -125,7 +114,6 @@ if (isset($_POST['admit_patient'])) {
     }
 }
 
-// Fetch lists for forms
 $patients = $pdo->query("SELECT id, name, phone FROM patients ORDER BY name ASC")->fetchAll();
 $doctors = $pdo->query("SELECT id, name, specialization FROM doctors WHERE status = 'available' ORDER BY name ASC")->fetchAll();
 

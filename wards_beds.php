@@ -5,7 +5,6 @@ require_role(['admin', 'receptionist']);
 
 $pdo = get_db_pdo();
 
-// Handle Add Ward
 if (isset($_POST['add_ward'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         set_flash('Invalid security token.', 'danger');
@@ -35,10 +34,8 @@ if (isset($_POST['add_ward'])) {
     }
 }
 
-// Fetch all Wards
 $wards = $pdo->query("SELECT * FROM wards ORDER BY name ASC")->fetchAll();
 
-// Fetch beds with active patient admissions
 $beds_data = $pdo->query("
     SELECT b.*, w.name as ward_name, w.type as ward_type, 
            ad.id as admission_id, p.name as patient_name, p.id as patient_id
@@ -49,7 +46,6 @@ $beds_data = $pdo->query("
     ORDER BY w.name ASC, b.bed_number ASC
 ")->fetchAll();
 
-// Group beds by Ward ID
 $ward_beds = [];
 foreach ($beds_data as $bed) {
     $ward_beds[$bed['ward_id']][] = $bed;
@@ -70,7 +66,6 @@ foreach ($beds_data as $bed) {
     </div>
 </div>
 
-<!-- Grid of Wards -->
 <div class="row g-4">
     <?php if (empty($wards)): ?>
         <div class="col-12 text-center py-5 text-muted bg-white rounded-4 border">
@@ -140,7 +135,6 @@ foreach ($beds_data as $bed) {
     <?php endif; ?>
 </div>
 
-<!-- Add Ward Modal -->
 <div class="modal fade" id="wardModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4">

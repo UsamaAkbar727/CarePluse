@@ -16,7 +16,6 @@ $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch();
 
-// Handle Profile Update
 if (isset($_POST['update_profile'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         set_flash('Invalid security token.', 'danger');
@@ -27,7 +26,6 @@ if (isset($_POST['update_profile'])) {
         $confirm_password = $_POST['confirm_password'] ?? '';
         $avatar_path = $user['avatar'] ?? null;
 
-        // Handle Avatar File Upload
         if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
             $file_tmp = $_FILES['avatar']['tmp_name'];
             $file_name = $_FILES['avatar']['name'];

@@ -5,7 +5,6 @@ require_role(['admin', 'pharmacist']);
 
 $pdo = get_db_pdo();
 
-// Handle Add Medicine Stock
 if (isset($_POST['add_medicine'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         set_flash('Invalid security token.', 'danger');
@@ -28,7 +27,6 @@ if (isset($_POST['add_medicine'])) {
     }
 }
 
-// Handle Stock Adjustments
 if (isset($_POST['adjust_stock'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         set_flash('Invalid security token.', 'danger');
@@ -44,7 +42,6 @@ if (isset($_POST['adjust_stock'])) {
     }
 }
 
-// Fetch all inventory
 $medicines = $pdo->query("SELECT * FROM medicines ORDER BY name ASC")->fetchAll();
 ?>
 
@@ -62,7 +59,6 @@ $medicines = $pdo->query("SELECT * FROM medicines ORDER BY name ASC")->fetchAll(
     </div>
 </div>
 
-<!-- Stock Grid -->
 <div class="card border-0 shadow-sm rounded-4">
     <div class="card-body p-4">
         <div class="table-responsive">
@@ -139,7 +135,6 @@ $medicines = $pdo->query("SELECT * FROM medicines ORDER BY name ASC")->fetchAll(
     </div>
 </div>
 
-<!-- Add Medicine Modal -->
 <div class="modal fade" id="medicineModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4">
@@ -194,7 +189,6 @@ $medicines = $pdo->query("SELECT * FROM medicines ORDER BY name ASC")->fetchAll(
     </div>
 </div>
 
-<!-- Stock Adjust Modal -->
 <div class="modal fade" id="stockAdjustModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4">

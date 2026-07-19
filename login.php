@@ -14,7 +14,6 @@ if (isset($_POST['login'])) {
         $pdo = get_db_pdo();
         $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
 
-        // Check block status (5 attempts in last 15 minutes)
         $lockout_stmt = $pdo->prepare('SELECT COUNT(*) FROM login_attempts WHERE ip_address = ? AND attempt_time > DATE_SUB(NOW(), INTERVAL 15 MINUTE)');
         $lockout_stmt->execute([$ip]);
         $attempts = $lockout_stmt->fetchColumn();
@@ -25,7 +24,6 @@ if (isset($_POST['login'])) {
             exit();
         }
 
-        // Check both username and email
         $stmt = $pdo->prepare('SELECT id, username, password, role, email, full_name, is_active FROM users WHERE username = ? OR email = ?');
         $stmt->execute([trim($_POST['username']), trim($_POST['username'])]);
         $user = $stmt->fetch();
@@ -64,7 +62,6 @@ if (isset($_POST['login'])) {
             $_SESSION['csrf_token'] = generate_csrf_token();
             session_regenerate_id(true);
 
-            // Update last login
             $stmt = $pdo->prepare('UPDATE users SET last_login = NOW() WHERE id = ?');
             $stmt->execute([$user['id']]);
 
@@ -356,8 +353,7 @@ $token = generate_csrf_token();
                 // Toggle icons
                 toggleIcon.classList.toggle('fa-eye');
                 toggleIcon.classList.toggle('fa-eye-slash');
-                
-                // Add a subtle scale effect on click
+
                 this.style.transform = 'scale(0.9)';
                 setTimeout(() => {
                     this.style.transform = 'scale(1)';
@@ -398,7 +394,6 @@ $token = generate_csrf_token();
                     passwordInput.dispatchEvent(new Event('input'));
                 }
 
-                // Add a visual indicator/animation on click
                 this.style.transform = 'scale(0.95)';
                 setTimeout(() => {
                     this.style.transform = 'none';

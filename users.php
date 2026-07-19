@@ -5,7 +5,6 @@ require_role('admin');
 
 $pdo = get_db_pdo();
 
-// Handle Delete
 if (isset($_GET['delete'])) {
     if (!verify_csrf_token($_GET['token'] ?? '')) {
         set_flash('Invalid security token.', 'danger');
@@ -31,7 +30,6 @@ if (isset($_GET['delete'])) {
     exit();
 }
 
-// Handle Add/Edit
 if (isset($_POST['save_user'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         set_flash('Invalid security token.', 'danger');
@@ -100,7 +98,6 @@ if (isset($_POST['save_user'])) {
     }
 }
 
-// Fetch Users
 $search = $_GET['search'] ?? '';
 $where = "WHERE 1=1";
 $params = [];
