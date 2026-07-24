@@ -197,9 +197,18 @@ function require_role($roles)
 {
     require_login();
     if (!in_array($_SESSION['role'] ?? '', (array) $roles)) {
-        http_response_code(403);
-        include __DIR__ . '/../403.php'; // Fallback to a 403 page if exists
-        die('Access denied. Insufficient permissions.');
+        if (function_exists('set_flash')) {
+            set_flash('Access Restricted: You do not have permissions for that module.', 'warning');
+        }
+        $redirect = match ($_SESSION['role'] ?? '') {
+            'pharmacist' => 'pharmacy.php',
+            'lab_tech' => 'lab_portal.php',
+            'doctor' => 'admin_dashboard.php',
+            'receptionist' => 'patients.php',
+            default => 'admin_dashboard.php'
+        };
+        header("Location: $redirect");
+        exit();
     }
 }
 

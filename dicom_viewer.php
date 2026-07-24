@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/header.php';
 require_once 'config.php';
+require_role(['admin', 'doctor', 'lab_tech']);
 
 $pdo = get_conn();
 $patient_id = isset($_GET['patient_id']) ? intval($_GET['patient_id']) : 0;

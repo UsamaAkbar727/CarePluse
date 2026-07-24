@@ -65,8 +65,14 @@ if (isset($_POST['login'])) {
             $stmt = $pdo->prepare('UPDATE users SET last_login = NOW() WHERE id = ?');
             $stmt->execute([$user['id']]);
 
-            // Role-based redirect to executive dashboard
-            $redirect = 'admin_dashboard.php';
+            // Smart role-based workspace redirect
+            $redirect = match ($user['role']) {
+                'pharmacist' => 'pharmacy.php',
+                'lab_tech' => 'lab_portal.php',
+                'doctor' => 'admin_dashboard.php',
+                'receptionist' => 'patients.php',
+                default => 'admin_dashboard.php'
+            };
             header("Location: $redirect");
             exit();
         }

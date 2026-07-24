@@ -569,14 +569,17 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <nav class="sidebar-nav">
         <div class="sidebar-section-title">Main</div>
 
-        <a href="index.php" class="nav-link <?= $current_page === 'index.php' ? 'active' : '' ?>">
+        <a href="admin_dashboard.php" class="nav-link <?= in_array($current_page, ['admin_dashboard.php', 'index.php']) ? 'active' : '' ?>">
             <i class="fas fa-chart-pie"></i> Dashboard
         </a>
 
-        <?php if (in_array($user_role, ['admin', 'receptionist'])): ?>
+        <?php if (in_array($user_role, ['admin', 'doctor', 'receptionist'])): ?>
         <a href="patients.php" class="nav-link <?= $current_page === 'patients.php' ? 'active' : '' ?>">
             <i class="fas fa-user-injured"></i> Patients
         </a>
+        <?php endif; ?>
+
+        <?php if (in_array($user_role, ['admin', 'receptionist'])): ?>
         <a href="doctors.php" class="nav-link <?= $current_page === 'doctors.php' ? 'active' : '' ?>">
             <i class="fas fa-user-md"></i> Doctors
         </a>
@@ -588,7 +591,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </a>
         <?php endif; ?>
 
-        <?php if (in_array($user_role, ['admin', 'lab_tech'])): ?>
+        <?php if (in_array($user_role, ['admin', 'doctor', 'receptionist'])): ?>
+        <a href="appointments.php" class="nav-link <?= in_array($current_page, ['appointments.php','add_appointment.php']) ? 'active' : '' ?>">
+            <i class="fas fa-calendar-check"></i> Appointments
+        </a>
+        <?php endif; ?>
+
+        <?php if (in_array($user_role, ['admin', 'doctor', 'lab_tech'])): ?>
         <a href="lab_portal.php" class="nav-link <?= $current_page === 'lab_portal.php' ? 'active' : '' ?>">
             <i class="fas fa-flask"></i> Diagnostics Lab
         </a>
@@ -600,21 +609,27 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </a>
         <?php endif; ?>
 
-        <a href="appointments.php" class="nav-link <?= in_array($current_page, ['appointments.php','add_appointment.php']) ? 'active' : '' ?>">
-            <i class="fas fa-calendar-check"></i> Appointments
-        </a>
-
         <!-- Enterprise Clinical Extensions -->
+        <?php if (in_array($user_role, ['admin', 'doctor', 'receptionist', 'lab_tech'])): ?>
         <div class="sidebar-section-title mt-2">Enterprise Clinical</div>
+        <?php if (in_array($user_role, ['admin', 'doctor'])): ?>
         <a href="telehealth.php" class="nav-link <?= $current_page === 'telehealth.php' ? 'active' : '' ?>">
             <i class="fas fa-video text-info"></i> Telehealth & Vitals
         </a>
+        <?php endif; ?>
+
+        <?php if (in_array($user_role, ['admin', 'doctor', 'receptionist'])): ?>
         <a href="shift_handoff.php" class="nav-link <?= $current_page === 'shift_handoff.php' ? 'active' : '' ?>">
             <i class="fas fa-exchange-alt text-warning"></i> Shift Handoff
         </a>
+        <?php endif; ?>
+
+        <?php if (in_array($user_role, ['admin', 'doctor', 'lab_tech'])): ?>
         <a href="dicom_viewer.php" class="nav-link <?= $current_page === 'dicom_viewer.php' ? 'active' : '' ?>">
             <i class="fas fa-microscope text-success"></i> Radiology DICOM
         </a>
+        <?php endif; ?>
+        <?php endif; ?>
 
         <?php if (in_array($user_role, ['admin', 'receptionist'])): ?>
         <a href="billing.php" class="nav-link <?= in_array($current_page, ['billing.php', 'invoice_details.php']) ? 'active' : '' ?>">
@@ -733,6 +748,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="p-2" id="cmdList" style="max-height: 380px; overflow-y: auto;">
+                    <?php if (in_array($user_role, ['admin', 'doctor', 'receptionist'])): ?>
                     <a href="patients.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
                         <i class="fas fa-user-injured text-primary fa-lg me-3"></i>
                         <div><strong class="d-block">Patients Directory</strong><small class="text-muted">Browse patient records & EHR files</small></div>
@@ -741,22 +757,46 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <i class="fas fa-calendar-plus text-success fa-lg me-3"></i>
                         <div><strong class="d-block">Schedule New Appointment</strong><small class="text-muted">Book consultation with specialist doctor</small></div>
                     </a>
+                    <?php endif; ?>
+
+                    <?php if (in_array($user_role, ['admin', 'doctor'])): ?>
                     <a href="telehealth.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
                         <i class="fas fa-video text-info fa-lg me-3"></i>
                         <div><strong class="d-block">Virtual Telehealth Room</strong><small class="text-muted">Launch live video consultation & telemetry HUD</small></div>
                     </a>
+                    <?php endif; ?>
+
+                    <?php if (in_array($user_role, ['admin', 'doctor', 'receptionist'])): ?>
                     <a href="shift_handoff.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
                         <i class="fas fa-exchange-alt text-warning fa-lg me-3"></i>
                         <div><strong class="d-block">Shift Handoff Management</strong><small class="text-muted">Duty handover logs & task board</small></div>
                     </a>
+                    <?php endif; ?>
+
+                    <?php if (in_array($user_role, ['admin', 'doctor', 'lab_tech'])): ?>
                     <a href="dicom_viewer.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
                         <i class="fas fa-microscope text-danger fa-lg me-3"></i>
                         <div><strong class="d-block">Radiology DICOM Viewer</strong><small class="text-muted">Inspect X-Ray, CT Scan, and MRI medical images</small></div>
                     </a>
+                    <a href="lab_portal.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
+                        <i class="fas fa-flask text-info fa-lg me-3"></i>
+                        <div><strong class="d-block">Diagnostics Lab Portal</strong><small class="text-muted">Manage lab orders and blood tests</small></div>
+                    </a>
+                    <?php endif; ?>
+
+                    <?php if (in_array($user_role, ['admin', 'pharmacist'])): ?>
                     <a href="pharmacy.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
                         <i class="fas fa-pills text-purple fa-lg me-3"></i>
                         <div><strong class="d-block">Pharmacy Inventory</strong><small class="text-muted">Manage drug stock, pricing, and safety checks</small></div>
                     </a>
+                    <?php endif; ?>
+
+                    <?php if ($user_role === 'admin'): ?>
+                    <a href="users.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
+                        <i class="fas fa-users-cog text-secondary fa-lg me-3"></i>
+                        <div><strong class="d-block">User Management</strong><small class="text-muted">Manage staff accounts and security credentials</small></div>
+                    </a>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="px-3 py-2 bg-light text-muted small border-top d-flex justify-content-between" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">

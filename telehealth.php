@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/header.php';
 require_once 'config.php';
+require_role(['admin', 'doctor']);
 
 $pdo = get_conn();
 
