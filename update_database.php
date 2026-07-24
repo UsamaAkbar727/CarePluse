@@ -199,70 +199,95 @@ try {
     ");
     echo "OK\n";
 
-    // 12. Create Lab Requests table
-    echo "Creating lab_requests table... ";
+    // 16. Create shift_handoffs table
+    echo "Creating shift_handoffs table... ";
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS lab_requests (
+        CREATE TABLE IF NOT EXISTS shift_handoffs (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            appointment_id INT NOT NULL,
-            test_id INT NOT NULL,
-            result_details TEXT DEFAULT NULL,
-            status ENUM('pending', 'completed') NOT NULL DEFAULT 'pending',
+            user_id INT NOT NULL,
+            shift_name VARCHAR(50) NOT NULL,
+            handover_to VARCHAR(100) NOT NULL,
+            high_risk_patients TEXT,
+            pending_tasks TEXT,
+            notes TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
-            FOREIGN KEY (test_id) REFERENCES lab_tests(id) ON DELETE CASCADE
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
     echo "OK\n";
 
-    // 13. Create insurance_companies table
-    echo "Creating insurance_companies table... ";
+    // 17. Create patient_documents table
+    echo "Creating patient_documents table... ";
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS insurance_companies (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(100) NOT NULL,
-            coverage_percentage DECIMAL(5,2) DEFAULT 80.00,
-            contact_email VARCHAR(100)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    ");
-    echo "OK\n";
-
-    // 14. Create patient_insurance table
-    echo "Creating patient_insurance table... ";
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS patient_insurance (
+        CREATE TABLE IF NOT EXISTS patient_documents (
             id INT AUTO_INCREMENT PRIMARY KEY,
             patient_id INT NOT NULL,
-            company_id INT NOT NULL,
-            policy_number VARCHAR(50) NOT NULL,
-            status ENUM('active', 'expired') DEFAULT 'active',
-            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
-            FOREIGN KEY (company_id) REFERENCES insurance_companies(id) ON DELETE CASCADE
+            title VARCHAR(150) NOT NULL,
+            document_type ENUM('X-Ray', 'CT Scan', 'MRI', 'Lab Report', 'General') DEFAULT 'General',
+            file_path VARCHAR(255) NOT NULL,
+            notes TEXT,
+            uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
     echo "OK\n";
 
-    // 15. Create insurance_claims table
-    echo "Creating insurance_claims table... ";
+    // 18. Create telehealth_sessions table
+    echo "Creating telehealth_sessions table... ";
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS insurance_claims (
+        CREATE TABLE IF NOT EXISTS telehealth_sessions (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            invoice_id INT NOT NULL,
-            company_id INT NOT NULL,
-            claim_number VARCHAR(50) UNIQUE NOT NULL,
-            amount_claimed DECIMAL(10,2) NOT NULL,
-            amount_approved DECIMAL(10,2) DEFAULT 0.00,
-            status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
-            remarks TEXT,
+            appointment_id INT NOT NULL,
+            doctor_id INT NOT NULL,
+            patient_id INT NOT NULL,
+            room_code VARCHAR(64) UNIQUE NOT NULL,
+            status ENUM('scheduled', 'live', 'completed', 'cancelled') DEFAULT 'scheduled',
+            vitals_snapshot JSON DEFAULT NULL,
+            consultation_notes TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
-            FOREIGN KEY (company_id) REFERENCES insurance_companies(id) ON DELETE CASCADE
+            FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
+            FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+    echo "OK\n";
+
+    // 19. Create drug_contraindications table
+    echo "Creating drug_contraindications table... ";
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS drug_contraindications (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            medicine_a_id INT NOT NULL,
+            medicine_b_id INT NOT NULL,
+            severity ENUM('Minor', 'Moderate', 'Major', 'Contraindicated') DEFAULT 'Moderate',
+            description TEXT NOT NULL,
+            FOREIGN KEY (medicine_a_id) REFERENCES medicines(id) ON DELETE CASCADE,
+            FOREIGN KEY (medicine_b_id) REFERENCES medicines(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+    echo "OK\n";
+
+    // 20. Create ai_clinical_notes table
+    echo "Creating ai_clinical_notes table... ";
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS ai_clinical_notes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            patient_id INT NOT NULL,
+            doctor_id INT NOT NULL,
+            symptoms TEXT,
+            suggested_diagnosis TEXT,
+            recommended_tests TEXT,
+            risk_level ENUM('Low', 'Moderate', 'High', 'Critical') DEFAULT 'Low',
+            ai_summary TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+            FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
     echo "OK\n";
 
     // Seed defaults
-    echo "Seeding default data (Wards, Beds, Medicines, Lab Tests, Insurance, Accounts)... ";
+    echo "Seeding default data (Wards, Beds, Medicines, Lab Tests, Insurance, Accounts, Contraindications)... ";
     
     // Seed Insurance Companies
     $pdo->exec("INSERT IGNORE INTO insurance_companies (id, name, coverage_percentage, contact_email) VALUES 
@@ -299,6 +324,12 @@ try {
         (5, 'Insulin Glargine', 'Injection', 40, 25.00, '2027-03-10')
     ");
 
+    // Seed Drug Contraindications
+    $pdo->exec("INSERT IGNORE INTO drug_contraindications (id, medicine_a_id, medicine_b_id, severity, description) VALUES 
+        (1, 1, 3, 'Moderate', 'Concurrent use of Paracetamol and Ibuprofen may increase risk of renal impairment if unmonitored.'),
+        (2, 2, 5, 'Minor', 'Antibiotics like Amoxicillin can mildly affect glycemic control in diabetic patients using Insulin.')
+    ");
+
     // Seed Lab Tests
     $pdo->exec("INSERT IGNORE INTO lab_tests (id, name, cost) VALUES 
         (1, 'Complete Blood Count (CBC)', 15.00),
@@ -326,9 +357,10 @@ try {
     }
 
     echo "OK\n";
-    echo "Database ERP Schema Update Completed Successfully!\n";
+    echo "Database Enterprise Schema Update Completed Successfully!\n";
 
 } catch (Exception $e) {
     echo "Error during update: " . $e->getMessage() . "\n";
 }
 ?>
+

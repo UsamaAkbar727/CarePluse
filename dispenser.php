@@ -203,13 +203,22 @@ $medicines_list = $pdo->query("SELECT id, name, type, stock_qty, price_per_unit 
                         <p class="text-muted small mb-0" id="doctor_instruction_text"></p>
                     </div>
 
+                    <!-- Drug Contraindication Alert Banner -->
+                    <div id="contraindication_alert_box" class="d-none alert alert-danger border-0 rounded-3 shadow-sm mb-3">
+                        <div class="d-flex align-items-center mb-1">
+                            <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
+                            <strong id="contraindication_title">DRUG INTERACTION WARNING DETECTED!</strong>
+                        </div>
+                        <div id="contraindication_details" class="small"></div>
+                    </div>
+
                     <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-capsules me-2"></i>Map Store Stock</h6>
                     <div id="dispensation_rows_container">
                         <!-- Dispensation drug selector row -->
                         <div class="row g-2 mb-3 dispensation-row align-items-end">
                             <div class="col-7">
                                 <label class="form-label small text-muted mb-1">Select Stock Medicine</label>
-                                <select name="med_ids[]" class="form-select rounded-3">
+                                <select name="med_ids[]" class="form-select rounded-3 med-select-input" onchange="verifyDrugSafety()">
                                     <option value="" disabled selected>Choose medicine...</option>
                                     <?php foreach ($medicines_list as $m): ?>
                                         <option value="<?= $m['id'] ?>">
@@ -232,6 +241,40 @@ $medicines_list = $pdo->query("SELECT id, name, type, stock_qty, price_per_unit 
                         <i class="fas fa-plus me-1"></i> Add Another Drug
                     </button>
                 </div>
+
+<script>
+function verifyDrugSafety() {
+    const selects = document.querySelectorAll('.med-select-input');
+    const selectedIds = [];
+    selects.forEach(s => {
+        if (s.value) selectedIds.push(s.value);
+    });
+
+    const alertBox = document.getElementById('contraindication_alert_box');
+    if (selectedIds.length < 2) {
+        alertBox.classList.add('d-none');
+        return;
+    }
+
+    fetch('includes/drug_safety.php?action=check&medicine_ids=' + selectedIds.join(','))
+        .then(res => res.json())
+        .then(data => {
+            if (data.has_warnings) {
+                alertBox.classList.remove('d-none');
+                let html = '<ul>';
+                data.warnings.forEach(w => {
+                    html += `<li><strong>${w.drug_a} + ${w.drug_b}:</strong> ${w.message}</li>`;
+                });
+                html += '</ul>';
+                document.getElementById('contraindication_details').innerHTML = html;
+            } else {
+                alertBox.classList.add('d-none');
+            }
+        })
+        .catch(err => alertBox.classList.add('d-none'));
+}
+</script>
+
 
                 <div class="card-footer bg-white border-0 p-4 pt-0">
                     <button type="submit" name="dispense_meds" class="btn btn-success btn-lg w-100 rounded-pill py-3 fw-bold">

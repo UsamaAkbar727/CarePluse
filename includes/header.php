@@ -604,6 +604,18 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <i class="fas fa-calendar-check"></i> Appointments
         </a>
 
+        <!-- Enterprise Clinical Extensions -->
+        <div class="sidebar-section-title mt-2">Enterprise Clinical</div>
+        <a href="telehealth.php" class="nav-link <?= $current_page === 'telehealth.php' ? 'active' : '' ?>">
+            <i class="fas fa-video text-info"></i> Telehealth & Vitals
+        </a>
+        <a href="shift_handoff.php" class="nav-link <?= $current_page === 'shift_handoff.php' ? 'active' : '' ?>">
+            <i class="fas fa-exchange-alt text-warning"></i> Shift Handoff
+        </a>
+        <a href="dicom_viewer.php" class="nav-link <?= $current_page === 'dicom_viewer.php' ? 'active' : '' ?>">
+            <i class="fas fa-microscope text-success"></i> Radiology DICOM
+        </a>
+
         <?php if (in_array($user_role, ['admin', 'receptionist'])): ?>
         <a href="billing.php" class="nav-link <?= in_array($current_page, ['billing.php', 'invoice_details.php']) ? 'active' : '' ?>">
             <i class="fas fa-file-invoice-dollar"></i> Billing & Ledgers
@@ -648,6 +660,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <!-- Mobile menu toggle -->
     <button class="topbar-btn d-md-none me-auto" onclick="openSidebar()" style="margin-left:-8px;">
         <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Global Command Palette Trigger -->
+    <button class="btn btn-light btn-sm me-auto d-none d-md-flex align-items-center gap-2 border shadow-sm px-3" onclick="openCommandPalette()" style="border-radius: 20px !important;">
+        <i class="fas fa-search text-primary"></i>
+        <span class="text-muted small">Search patients, modules...</span>
+        <kbd class="bg-dark text-white px-2 py-0 small rounded" style="font-size:10px;">Ctrl + K</kbd>
     </button>
 
     <!-- Notifications -->
@@ -702,6 +721,79 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </ul>
     </div>
 </header>
+
+<!-- Command Palette Modal -->
+<div class="modal fade" id="commandPaletteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px !important;">
+            <div class="modal-body p-0">
+                <div class="p-3 border-bottom d-flex align-items-center bg-light" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                    <i class="fas fa-search text-muted me-2 fa-lg"></i>
+                    <input type="text" id="cmdInput" class="form-control border-0 bg-transparent shadow-none" placeholder="Type a command or search (e.g. Patient, Telehealth, Shift, Pharmacy)..." style="font-size: 16px;" onkeyup="filterCommandPalette()">
+                    <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="p-2" id="cmdList" style="max-height: 380px; overflow-y: auto;">
+                    <a href="patients.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
+                        <i class="fas fa-user-injured text-primary fa-lg me-3"></i>
+                        <div><strong class="d-block">Patients Directory</strong><small class="text-muted">Browse patient records & EHR files</small></div>
+                    </a>
+                    <a href="add_appointment.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
+                        <i class="fas fa-calendar-plus text-success fa-lg me-3"></i>
+                        <div><strong class="d-block">Schedule New Appointment</strong><small class="text-muted">Book consultation with specialist doctor</small></div>
+                    </a>
+                    <a href="telehealth.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
+                        <i class="fas fa-video text-info fa-lg me-3"></i>
+                        <div><strong class="d-block">Virtual Telehealth Room</strong><small class="text-muted">Launch live video consultation & telemetry HUD</small></div>
+                    </a>
+                    <a href="shift_handoff.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
+                        <i class="fas fa-exchange-alt text-warning fa-lg me-3"></i>
+                        <div><strong class="d-block">Shift Handoff Management</strong><small class="text-muted">Duty handover logs & task board</small></div>
+                    </a>
+                    <a href="dicom_viewer.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
+                        <i class="fas fa-microscope text-danger fa-lg me-3"></i>
+                        <div><strong class="d-block">Radiology DICOM Viewer</strong><small class="text-muted">Inspect X-Ray, CT Scan, and MRI medical images</small></div>
+                    </a>
+                    <a href="pharmacy.php" class="cmd-item d-flex align-items-center p-3 text-decoration-none text-dark rounded-3 mb-1 hover-bg-light">
+                        <i class="fas fa-pills text-purple fa-lg me-3"></i>
+                        <div><strong class="d-block">Pharmacy Inventory</strong><small class="text-muted">Manage drug stock, pricing, and safety checks</small></div>
+                    </a>
+                </div>
+            </div>
+            <div class="px-3 py-2 bg-light text-muted small border-top d-flex justify-content-between" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                <span>Use <kbd>↑</kbd> <kbd>↓</kbd> to navigate, <kbd>ESC</kbd> to close</span>
+                <span>CarePulse Command Center</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openCommandPalette();
+    }
+});
+
+function openCommandPalette() {
+    const modalEl = document.getElementById('commandPaletteModal');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+        setTimeout(() => document.getElementById('cmdInput').focus(), 200);
+    }
+}
+
+function filterCommandPalette() {
+    const val = document.getElementById('cmdInput').value.toLowerCase();
+    const items = document.querySelectorAll('#cmdList .cmd-item');
+    items.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.style.display = text.includes(val) ? 'flex' : 'none';
+    });
+}
+</script>
+
 
 <!-- ===================== MAIN AREA ===================== -->
 <div id="main-content">
