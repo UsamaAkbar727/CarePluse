@@ -1,3 +1,12 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (isset($_SESSION['user_id']) && !isset($_GET['public'])) {
+    header('Location: admin_dashboard.php');
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -449,6 +458,9 @@
                                     {links.map(l => <button key={l} onClick={() => go(l)} className="px-3.5 py-2 rounded-xl text-[13px] font-medium text-slate-500 hover:text-primary hover:bg-primary/5 transition-all">{l}</button>)}
                                 </div>
                                 <div className="flex items-center gap-3">
+                                    <a href="login.php" className="hidden lg:flex items-center gap-2 border border-primary/30 text-primary bg-primary/5 hover:bg-primary hover:text-white px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all">
+                                        <i className="fa-solid fa-right-to-bracket text-xs"></i> Portal Login
+                                    </a>
                                     <button onClick={() => go('Contact')} className="hidden lg:flex items-center gap-2 bg-gradient-to-r from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl text-[13px] font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.03] active:scale-[0.97] transition-all">
                                         <i className="fa-regular fa-calendar-check text-xs"></i> Book Appointment
                                     </button>
@@ -470,7 +482,8 @@
                                 <div className="flex-1 overflow-y-auto py-2 px-3">
                                     {links.map(l => <button key={l} onClick={() => go(l)} className="w-full text-left px-4 py-3 rounded-xl text-slate-600 font-medium text-sm hover:bg-primary/5 hover:text-primary transition-colors">{l}</button>)}
                                 </div>
-                                <div className="p-4 border-t border-slate-100">
+                                <div className="p-4 border-t border-slate-100 flex flex-col gap-2">
+                                    <a href="login.php" className="w-full text-center border border-primary text-primary py-2.5 rounded-xl font-semibold text-sm">Portal Login</a>
                                     <button onClick={() => go('Contact')} className="w-full bg-gradient-to-r from-primary to-primary-dark text-white py-3 rounded-xl font-semibold text-sm">Book Appointment</button>
                                 </div>
                             </div>
@@ -515,6 +528,9 @@
                                             <i className="fa-regular fa-calendar-check text-sm"></i> Book Appointment
                                             <i className="fa-solid fa-arrow-right text-xs group-hover:translate-x-0.5 transition-transform"></i>
                                         </button>
+                                        <a href="login.php" className="group bg-white border-2 border-primary/20 text-primary px-6 py-4 rounded-2xl font-semibold hover:bg-primary hover:text-white transition-all flex items-center gap-2.5">
+                                            <i className="fa-solid fa-user-lock text-sm"></i> Staff & Clinical Portal
+                                        </a>
                                         <a href="tel:+15552345678" className="group bg-white border-2 border-slate-200 text-dark px-7 py-4 rounded-2xl font-semibold hover:border-red-300 hover:text-red-600 hover:bg-red-50/50 transition-all flex items-center gap-2.5">
                                             <span className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors"><i className="fa-solid fa-phone-volume text-red-500 text-sm"></i></span>
                                             Emergency

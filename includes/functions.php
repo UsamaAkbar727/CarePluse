@@ -46,12 +46,104 @@ function get_db_pdo()
             PDO::ATTR_EMULATE_PREPARES => false,
         ]);
         
-        // Ensure default admin exists
+        // Ensure default admin & enterprise tables exist
         ensure_admin_exists($pdo);
+        ensure_enterprise_tables_exist($pdo);
         
         return $pdo;
     } catch (PDOException $e) {
         die('DB Connection failed: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Automatically creates all enterprise ERP & HMS tables if they do not exist yet.
+ */
+function ensure_enterprise_tables_exist($pdo)
+{
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+
+    try {
+        // 1. Shift handoffs
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS shift_handoffs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                shift_name VARCHAR(50) NOT NULL,
+                handover_to VARCHAR(100) NOT NULL,
+                high_risk_patients TEXT,
+                pending_tasks TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ");
+
+        // 2. Patient documents
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS patient_documents (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                patient_id INT NOT NULL,
+                title VARCHAR(150) NOT NULL,
+                document_type ENUM('X-Ray', 'CT Scan', 'MRI', 'Lab Report', 'General') DEFAULT 'General',
+                file_path VARCHAR(255) NOT NULL,
+                notes TEXT,
+                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ");
+
+        // 3. Telehealth sessions
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS telehealth_sessions (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                appointment_id INT NOT NULL,
+                doctor_id INT NOT NULL,
+                patient_id INT NOT NULL,
+                room_code VARCHAR(64) UNIQUE NOT NULL,
+                status ENUM('scheduled', 'live', 'completed', 'cancelled') DEFAULT 'scheduled',
+                vitals_snapshot JSON DEFAULT NULL,
+                consultation_notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
+                FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+                FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ");
+
+        // 4. Drug contraindications
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS drug_contraindications (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                medicine_a_id INT NOT NULL,
+                medicine_b_id INT NOT NULL,
+                severity ENUM('Minor', 'Moderate', 'Major', 'Contraindicated') DEFAULT 'Moderate',
+                description TEXT NOT NULL,
+                FOREIGN KEY (medicine_a_id) REFERENCES medicines(id) ON DELETE CASCADE,
+                FOREIGN KEY (medicine_b_id) REFERENCES medicines(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ");
+
+        // 5. AI Clinical notes
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS ai_clinical_notes (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                patient_id INT NOT NULL,
+                doctor_id INT NOT NULL,
+                symptoms TEXT,
+                suggested_diagnosis TEXT,
+                recommended_tests TEXT,
+                risk_level ENUM('Low', 'Moderate', 'High', 'Critical') DEFAULT 'Low',
+                ai_summary TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+                FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ");
+    } catch (Exception $e) {
+        // Silently handle if table creation succeeds or foreign keys are built
     }
 }
 

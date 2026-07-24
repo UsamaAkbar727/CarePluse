@@ -65,12 +65,8 @@ if (isset($_POST['login'])) {
             $stmt = $pdo->prepare('UPDATE users SET last_login = NOW() WHERE id = ?');
             $stmt->execute([$user['id']]);
 
-            // Role-based redirect
-            $redirect = match ($user['role']) {
-                'admin', 'receptionist' => 'index.php',
-                'doctor' => 'appointments.php',
-                default => 'index.php'
-            };
+            // Role-based redirect to executive dashboard
+            $redirect = 'admin_dashboard.php';
             header("Location: $redirect");
             exit();
         }
@@ -317,17 +313,23 @@ $token = generate_csrf_token();
                 </button>
             </form>
 
-            <div class="mt-4 pt-3 border-top">
+            <div class="mt-4 pt-3 border-top text-center">
                 <p class="text-center text-muted mb-2" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Quick Demo Accounts (Click to Fill)</p>
                 <div class="d-flex flex-wrap gap-2 justify-content-center">
-                    <button type="button" class="btn demo-cred-btn" data-username="admin" data-password="Admin@123">
-                        <span class="d-flex align-items-center gap-2"><i class="fas fa-user-shield text-indigo"></i> Admin</span>
+                    <button type="button" class="btn btn-sm btn-outline-primary demo-cred-btn" data-username="admin" data-password="password">
+                        <i class="fas fa-user-shield me-1"></i> Admin
                     </button>
-                    <button type="button" class="btn demo-cred-btn" data-username="doctor1" data-password="password">
-                        <span class="d-flex align-items-center gap-2"><i class="fas fa-user-md text-primary"></i> Doctor</span>
+                    <button type="button" class="btn btn-sm btn-outline-info demo-cred-btn" data-username="doctor1" data-password="password">
+                        <i class="fas fa-user-md me-1"></i> Doctor
                     </button>
-                    <button type="button" class="btn demo-cred-btn" data-username="recep1" data-password="password">
-                        <span class="d-flex align-items-center gap-2"><i class="fas fa-user-tag text-success"></i> Receptionist</span>
+                    <button type="button" class="btn btn-sm btn-outline-success demo-cred-btn" data-username="recep1" data-password="password">
+                        <i class="fas fa-user-tag me-1"></i> Receptionist
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning demo-cred-btn" data-username="pharmacist" data-password="password">
+                        <i class="fas fa-pills me-1"></i> Pharmacist
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger demo-cred-btn" data-username="labtech" data-password="password">
+                        <i class="fas fa-flask me-1"></i> Lab Tech
                     </button>
                 </div>
             </div>
