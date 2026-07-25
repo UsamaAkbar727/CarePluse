@@ -39,6 +39,53 @@ if (isset($_POST['save_insurance'])) {
     }
 }
 
+// Handle Radiology Scan Document Upload
+if (isset($_POST['upload_scan'])) {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        set_flash('Invalid security token.', 'danger');
+    } else {
+        $title = trim($_POST['title'] ?? '');
+        $type = trim($_POST['document_type'] ?? 'X-Ray');
+        $notes = trim($_POST['notes'] ?? '');
+        
+        if (empty($title) || !isset($_FILES['scan_file']) || $_FILES['scan_file']['error'] !== UPLOAD_ERR_OK) {
+            set_flash('Please fill in study title and select a valid scan file.', 'danger');
+        } else {
+            $file = $_FILES['scan_file'];
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+            
+            if (!in_array($ext, $allowed)) {
+                set_flash('Invalid file extension. Only JPG, JPEG, PNG, and GIF scan files are allowed.', 'danger');
+            } else {
+                $upload_dir = __DIR__ . '/uploads/';
+                if (!file_exists($upload_dir)) {
+                    mkdir($upload_dir, 0777, true);
+                }
+                
+                $filename = 'scan_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
+                $target_path = $upload_dir . $filename;
+                
+                if (move_uploaded_file($file['tmp_name'], $target_path)) {
+                    $db_path = 'uploads/' . $filename;
+                    $stmt = $pdo->prepare("
+                        INSERT INTO patient_documents 
+                        (patient_id, title, document_type, file_path, notes) 
+                        VALUES (?, ?, ?, ?, ?)
+                    ");
+                    $stmt->execute([$patient_id, $title, $type, $db_path, $notes]);
+                    
+                    set_flash('Radiology scan uploaded and linked to EHR successfully!');
+                    header("Location: patient_history.php?id=$patient_id");
+                    exit();
+                } else {
+                    set_flash('Failed to save uploaded file to server.', 'danger');
+                }
+            }
+        }
+    }
+}
+
 $stmt = $pdo->prepare("
     SELECT pr.*, d.name as doctor_name, d.specialization, a.app_date, a.app_time
     FROM prescriptions pr
@@ -59,6 +106,15 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$patient_id]);
 $invoices = $stmt->fetchAll();
+
+// Fetch radiology scan documents
+$stmt = $pdo->prepare("
+    SELECT * FROM patient_documents 
+    WHERE patient_id = ? AND document_type IN ('X-Ray', 'CT Scan', 'MRI')
+    ORDER BY uploaded_at DESC
+");
+$stmt->execute([$patient_id]);
+$scans = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch insurance details
 $ins_stmt = $pdo->prepare("
@@ -296,6 +352,11 @@ function executeAIAnalysis() {
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold px-4 pb-3" id="billing-tab" data-bs-toggle="tab" data-bs-target="#billing" type="button" role="tab" aria-controls="billing" aria-selected="false" style="border: none; border-bottom: 3px solid transparent;">
                             <i class="fas fa-file-invoice-dollar me-2"></i>Invoices
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold px-4 pb-3" id="radiology-tab" data-bs-toggle="tab" data-bs-target="#radiology" type="button" role="tab" aria-controls="radiology" aria-selected="false" style="border: none; border-bottom: 3px solid transparent;">
+                            <i class="fas fa-microscope me-2"></i>Radiology Scans
                         </button>
                     </li>
                 </ul>
@@ -565,6 +626,71 @@ function executeAIAnalysis() {
                         <?php endif; ?>
                     </div>
                     
+                    <!-- RADIOLOGY SCANS TAB -->
+                    <div class="tab-pane fade" id="radiology" role="tabpanel" aria-labelledby="radiology-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                            <h6 class="fw-bold text-gray-800 mb-0"><i class="fas fa-radiation-alt me-2 text-danger"></i>Radiology Diagnostic Studies</h6>
+                            <button class="btn btn-sm btn-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#uploadScanModal">
+                                <i class="fas fa-upload me-1"></i>Upload New Scan
+                            </button>
+                        </div>
+                        
+                        <?php if (empty($scans)): ?>
+                            <div class="text-center py-5">
+                                <div style="background: #f8fafc; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                    <i class="fas fa-radiation text-muted fa-2x"></i>
+                                </div>
+                                <h6 class="fw-bold text-muted">No Radiology Scans Uploaded</h6>
+                                <p class="text-muted small mb-0">No X-Ray, CT Scans, or MRIs have been uploaded for this patient yet.</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Study Title</th>
+                                            <th>Type</th>
+                                            <th>Upload Date</th>
+                                            <th>Impression</th>
+                                            <th class="text-end">Workstation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($scans as $scan): ?>
+                                            <tr>
+                                                <td class="fw-bold"><?= esc($scan['title']) ?></td>
+                                                <td>
+                                                    <?php
+                                                    $type_badge = match ($scan['document_type']) {
+                                                        'X-Ray' => 'info',
+                                                        'CT Scan' => 'primary',
+                                                        'MRI' => 'purple',
+                                                        default => 'secondary'
+                                                    };
+                                                    ?>
+                                                    <span class="badge bg-<?= $type_badge ?>-subtle text-<?= $type_badge ?> px-3 py-2 rounded-pill" style="font-size: 11px;">
+                                                        <?= esc($scan['document_type']) ?>
+                                                    </span>
+                                                </td>
+                                                <td><?= date('M j, Y H:i', strtotime($scan['uploaded_at'])) ?></td>
+                                                <td>
+                                                    <span class="text-muted small d-inline-block text-truncate" style="max-width: 180px;" title="<?= esc($scan['notes']) ?>">
+                                                        <?= esc($scan['notes'] ?: 'No notes recorded') ?>
+                                                    </span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <a href="dicom_viewer.php?patient_id=<?= $patient_id ?>&document_id=<?= $scan['id'] ?>" class="btn btn-sm btn-dark px-3 rounded-pill" style="font-size: 12px; font-weight:600;">
+                                                        <i class="fas fa-microscope me-1"></i> Launch Workstation
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -609,6 +735,52 @@ function executeAIAnalysis() {
     </div>
 </div>
 
+<!-- Upload Scan Modal -->
+<div class="modal fade" id="uploadScanModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-bottom-0 p-4 pb-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-radiation text-primary me-2"></i>Upload Patient Radiology Study</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Study / Document Title</label>
+                        <input type="text" name="title" class="form-control rounded-3" placeholder="e.g. Chest X-Ray (Post-Op)" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Scan Modality / Type</label>
+                        <select name="document_type" class="form-select rounded-3" required>
+                            <option value="X-Ray">X-Ray</option>
+                            <option value="CT Scan">CT Scan</option>
+                            <option value="MRI">MRI</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Select Scan Image File (JPG, PNG, GIF)</label>
+                        <input type="file" name="scan_file" class="form-control rounded-3" accept="image/png, image/jpeg, image/gif" required>
+                        <small class="text-muted text-xs">Note: DICOM scans are converted to high-resolution web formats for visualization.</small>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold">Radiologist Impression Notes</label>
+                        <textarea name="notes" class="form-control rounded-3" rows="3" placeholder="Enter findings, impressions, or comments..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="upload_scan" class="btn btn-primary rounded-pill px-4">Upload Scan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Extra styles for active tab layout matching our custom themes -->
 <style>
 #ehrTab .nav-link.active {
@@ -624,6 +796,8 @@ function executeAIAnalysis() {
     color: var(--text);
     border-bottom-color: #cbd5e1;
 }
+.bg-purple-subtle { background-color: #f3e8ff !important; }
+.text-purple { color: #7e22ce !important; }
 </style>
 
 <?php require_once 'includes/footer.php'; ?>

@@ -5,7 +5,12 @@ require_role(['admin', 'doctor', 'lab_tech']);
 
 $pdo = get_conn();
 $patient_id = isset($_GET['patient_id']) ? intval($_GET['patient_id']) : 0;
+$doc_id = isset($_GET['document_id']) ? intval($_GET['document_id']) : 0;
 $doc_type = isset($_GET['type']) ? sanitize($_GET['type']) : 'X-Ray';
+
+$study_title = "Study ID: #RAD-" . rand(1000, 9999);
+$acquisition_date = date('Y-m-d H:i');
+$radiologist_impression = "Bilateral lung fields clear with normal cardiac silhouette. No pleural effusion or pneumothorax identified. Osseous structures intact.";
 
 // Default images for radiology simulation
 $demoImages = [
@@ -14,6 +19,23 @@ $demoImages = [
     'MRI' => 'clinical_hero.png'
 ];
 $selectedImage = $demoImages[$doc_type] ?? 'clinical_hero.png';
+
+// Check if dynamic document exists in DB
+if ($doc_id > 0) {
+    $stmt = $pdo->prepare("SELECT * FROM patient_documents WHERE id = ?");
+    $stmt->execute([$doc_id]);
+    $doc = $stmt->fetch();
+    
+    if ($doc) {
+        $selectedImage = $doc['file_path'];
+        $doc_type = $doc['document_type'];
+        $study_title = htmlspecialchars($doc['title']);
+        $acquisition_date = date('Y-m-d H:i', strtotime($doc['uploaded_at']));
+        if (!empty($doc['notes'])) {
+            $radiologist_impression = htmlspecialchars($doc['notes']);
+        }
+    }
+}
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -31,7 +53,7 @@ $selectedImage = $demoImages[$doc_type] ?? 'clinical_hero.png';
     <div class="col-lg-9 mb-4">
         <div class="card shadow-lg border-0 bg-dark text-white rounded-lg">
             <div class="card-header bg-dark border-secondary d-flex justify-content-between align-items-center">
-                <span class="font-weight-bold text-light"><i class="fas fa-microscope text-info mr-2"></i> DICOM Viewer Panel (Study ID: #RAD-<?= rand(1000,9999) ?>)</span>
+                <span class="font-weight-bold text-light"><i class="fas fa-microscope text-info mr-2"></i> DICOM Viewer Panel (<?= $study_title ?>)</span>
                 <div>
                     <span class="badge badge-primary mr-2"><?= htmlspecialchars($doc_type) ?> DICOM Matrix</span>
                     <span class="badge badge-success">PACS SERVER SYNCED</span>
@@ -68,7 +90,7 @@ $selectedImage = $demoImages[$doc_type] ?? 'clinical_hero.png';
             </div>
             <div class="card-body p-3 small">
                 <div class="mb-2"><strong>Modality:</strong> <span class="badge badge-info float-right"><?= htmlspecialchars($doc_type) ?></span></div>
-                <div class="mb-2"><strong>Acquisition Date:</strong> <span class="float-right"><?= date('Y-m-d H:i') ?></span></div>
+                <div class="mb-2"><strong>Acquisition Date:</strong> <span class="float-right"><?= $acquisition_date ?></span></div>
                 <div class="mb-2"><strong>Body Region:</strong> <span class="float-right">Thorax / Chest</span></div>
                 <div class="mb-2"><strong>Manufacturer:</strong> <span class="float-right">Siemens SOMATOM</span></div>
                 <div class="mb-2"><strong>KVP / Exposure:</strong> <span class="float-right">120 kVp / 15 mA</span></div>
@@ -84,7 +106,7 @@ $selectedImage = $demoImages[$doc_type] ?? 'clinical_hero.png';
             </div>
             <div class="card-body">
                 <p class="small text-muted mb-3">
-                    Bilateral lung fields clear with normal cardiac silhouette. No pleural effusion or pneumothorax identified. Osseous structures intact.
+                    <?= nl2br($radiologist_impression) ?>
                 </p>
                 <button class="btn btn-success btn-block btn-sm font-weight-bold" onclick="exportRadiologyReport()">
                     <i class="fas fa-download mr-1"></i> Export Diagnostic Report
