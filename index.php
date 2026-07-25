@@ -300,49 +300,49 @@
                             <button onClick={() => setMobile(true)} className="lg:hidden w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-100 rounded-xl transition"><i className="fa-solid fa-bars-staggered"></i></button>
                         </div>
                     </div>
+                </header>
 
-                    {/* Mobile drawer */}
-                    {mobile && (
-                        <div className="fixed inset-0 z-[60] flex justify-end">
-                            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setMobile(false)}></div>
-                            <div className="relative w-80 bg-white shadow-2xl flex flex-col h-full border-l border-slate-200 overflow-y-auto">
-                                {/* Drawer header */}
-                                <div className="p-6 pb-4 border-b border-slate-100 bg-gradient-to-br from-primary to-primary-light">
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center"><i className="fa-solid fa-heart-pulse text-white text-xs"></i></div>
-                                            <span className="font-outfit font-bold text-white">CarePulse</span>
-                                        </div>
-                                        <button onClick={() => setMobile(false)} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 transition"><i className="fa-solid fa-xmark"></i></button>
+                {/* Mobile drawer (rendered outside header to avoid stacking context clipping) */}
+                {mobile && (
+                    <div className="fixed inset-0 z-[100] flex justify-end">
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMobile(false)}></div>
+                        <div className="relative w-80 bg-white shadow-2xl flex flex-col h-full border-l border-slate-200 overflow-y-auto">
+                            {/* Drawer header */}
+                            <div className="p-6 pb-4 border-b border-slate-100 bg-gradient-to-br from-primary to-primary-light">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center"><i className="fa-solid fa-heart-pulse text-white text-xs"></i></div>
+                                        <span className="font-outfit font-bold text-white">CarePulse</span>
                                     </div>
-                                    <p className="text-white/60 text-xs mt-3">Advanced Healthcare Ecosystem</p>
+                                    <button onClick={() => setMobile(false)} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 transition"><i className="fa-solid fa-xmark"></i></button>
                                 </div>
-                                {/* Drawer links */}
-                                <div className="flex-1 p-4 space-y-1">
-                                    {links.map(l => (
-                                        <button key={l.name} onClick={() => scrollTo(l.name)}
-                                            className={`w-full text-left px-4 py-3.5 font-medium rounded-xl transition-all duration-200 flex items-center gap-3 ${activeLink === l.name ? 'bg-secondary/10 text-secondary font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${activeLink === l.name ? 'bg-secondary/20' : 'bg-slate-100'}`}>
-                                                <i className={`fa-solid ${l.icon} text-xs ${activeLink === l.name ? 'text-secondary' : 'text-slate-400'}`}></i>
-                                            </div>
-                                            {l.name}
-                                            {activeLink === l.name && <div className="ml-auto w-1.5 h-1.5 bg-secondary rounded-full"></div>}
-                                        </button>
-                                    ))}
-                                </div>
-                                {/* Drawer footer */}
-                                <div className="p-4 border-t border-slate-100 space-y-3 bg-slate-50/50">
-                                    <a href="login.php" className="flex items-center justify-center gap-2 border border-slate-200 py-3.5 rounded-xl font-semibold text-slate-600 hover:bg-white hover:border-primary/30 transition-all">
-                                        <i className="fa-solid fa-arrow-right-to-bracket text-xs"></i> Portal Login
-                                    </a>
-                                    <button onClick={() => scrollTo('Contact')} className="w-full bg-gradient-to-r from-primary to-primary-light text-white py-3.5 rounded-xl font-bold shadow-lg shadow-primary/15 flex items-center justify-center gap-2">
-                                        <i className="fa-solid fa-calendar-check text-xs"></i> Book Appointment
+                                <p className="text-white/60 text-xs mt-3">Advanced Healthcare Ecosystem</p>
+                            </div>
+                            {/* Drawer links */}
+                            <div className="flex-1 p-4 space-y-1">
+                                {links.map(l => (
+                                    <button key={l.name} onClick={() => scrollTo(l.name)}
+                                        className={`w-full text-left px-4 py-3.5 font-medium rounded-xl transition-all duration-200 flex items-center gap-3 ${activeLink === l.name ? 'bg-secondary/10 text-secondary font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${activeLink === l.name ? 'bg-secondary/20' : 'bg-slate-100'}`}>
+                                            <i className={`fa-solid ${l.icon} text-xs ${activeLink === l.name ? 'text-secondary' : 'text-slate-400'}`}></i>
+                                        </div>
+                                        {l.name}
+                                        {activeLink === l.name && <div className="ml-auto w-1.5 h-1.5 bg-secondary rounded-full"></div>}
                                     </button>
-                                </div>
+                                ))}
+                            </div>
+                            {/* Drawer footer */}
+                            <div className="p-4 border-t border-slate-100 space-y-3 bg-slate-50/50">
+                                <a href="login.php" className="flex items-center justify-center gap-2 border border-slate-200 py-3.5 rounded-xl font-semibold text-slate-600 hover:bg-white hover:border-primary/30 transition-all">
+                                    <i className="fa-solid fa-arrow-right-to-bracket text-xs"></i> Portal Login
+                                </a>
+                                <button onClick={() => scrollTo('Contact')} className="w-full bg-gradient-to-r from-primary to-primary-light text-white py-3.5 rounded-xl font-bold shadow-lg shadow-primary/15 flex items-center justify-center gap-2">
+                                    <i className="fa-solid fa-calendar-check text-xs"></i> Book Appointment
+                                </button>
                             </div>
                         </div>
-                    )}
-                </header>
+                    </div>
+                )}
                 </>
             );
         }
@@ -411,9 +411,8 @@
                     <div className="absolute top-32 right-1/4 w-3 h-3 bg-secondary/25 rounded-full animate-float pointer-events-none"></div>
                     <div className="absolute bottom-40 left-1/3 w-2 h-2 bg-accent/20 rounded-full animate-float-delay pointer-events-none"></div>
                     <div className="absolute top-1/2 left-16 w-4 h-4 bg-secondary/10 rounded-full animate-float-slow pointer-events-none"></div>
-
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-10 items-center py-20 lg:py-28 relative">
-                        <div className="lg:col-span-6 space-y-7">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-6 lg:gap-10 items-center py-10 lg:py-28 relative">
+                        <div className="lg:col-span-6 space-y-5 lg:space-y-7">
                             {/* Animated badge */}
                             <FadeIn>
                                 <span key={'badge-'+current} className="inline-flex items-center gap-2 bg-secondary/10 text-secondary text-xs font-bold px-4 py-2 rounded-full tracking-wide hero-slide-active">
@@ -423,20 +422,20 @@
                             </FadeIn>
 
                             {/* Auto-rotating heading */}
-                            <div className="relative min-h-[140px] sm:min-h-[160px] lg:min-h-[180px]">
+                            <div className="relative min-h-[96px] sm:min-h-[140px] lg:min-h-[180px]">
                                 {slides.map((s, i) => (
                                     <h1 key={i}
-                                        className={`font-outfit font-black text-4xl sm:text-5xl lg:text-[3.5rem] text-slate-900 leading-[1.08] tracking-tight transition-all duration-700 ease-out ${i === current ? 'opacity-100 translate-y-0 relative' : 'opacity-0 translate-y-4 absolute top-0 left-0 right-0 pointer-events-none'}`}>
+                                        className={`font-outfit font-black text-3xl sm:text-5xl lg:text-[3.5rem] text-slate-900 leading-[1.1] tracking-tight transition-all duration-700 ease-out ${i === current ? 'opacity-100 translate-y-0 relative' : 'opacity-0 translate-y-4 absolute top-0 left-0 right-0 pointer-events-none'}`}>
                                         {s.heading}
                                     </h1>
                                 ))}
                             </div>
 
                             {/* Auto-rotating description */}
-                            <div className="relative min-h-[52px]">
+                            <div className="relative min-h-[44px] sm:min-h-[52px]">
                                 {slides.map((s, i) => (
                                     <p key={i}
-                                        className={`text-slate-500 text-base lg:text-lg max-w-md leading-relaxed transition-all duration-600 delay-100 ease-out ${i === current ? 'opacity-100 translate-y-0 relative' : 'opacity-0 translate-y-3 absolute top-0 left-0 right-0 pointer-events-none'}`}>
+                                        className={`text-slate-500 text-sm sm:text-base lg:text-lg max-w-md leading-relaxed transition-all duration-600 delay-100 ease-out ${i === current ? 'opacity-100 translate-y-0 relative' : 'opacity-0 translate-y-3 absolute top-0 left-0 right-0 pointer-events-none'}`}>
                                         {s.desc}
                                     </p>
                                 ))}
@@ -459,15 +458,15 @@
                             </div>
 
                             <FadeIn delay={300}>
-                                <div className="flex flex-wrap gap-4 items-center">
-                                    <button onClick={() => document.getElementById('contact').scrollIntoView({behavior:'smooth'})} className="group bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded-full font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 flex items-center gap-2">
-                                        Book Diagnostic Slot <i className="fa-solid fa-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i>
+                                <div className="flex flex-wrap gap-3.5 items-center">
+                                    <button onClick={() => document.getElementById('contact').scrollIntoView({behavior:'smooth'})} className="group bg-primary hover:bg-primary-dark text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 flex items-center gap-2">
+                                        Book Diagnostic Slot <i className="fa-solid fa-arrow-right text-xs sm:text-sm group-hover:translate-x-1 transition-transform"></i>
                                     </button>
-                                    <a href="login.php" className="group text-slate-500 font-semibold flex items-center gap-2 hover:text-primary transition">Staff Access <i className="fa-solid fa-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i></a>
+                                    <a href="login.php" className="group text-slate-500 font-semibold flex items-center gap-2 hover:text-primary transition text-sm">Staff Access <i className="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i></a>
                                 </div>
                             </FadeIn>
                             <FadeIn delay={400}>
-                                <div className="flex flex-wrap items-center gap-5 pt-2">
+                                <div className="hidden sm:flex flex-wrap items-center gap-5 pt-2">
                                     {[
                                         { icon: 'fa-circle-check', label: '98% satisfaction' },
                                         { icon: 'fa-clock', label: '24/7 emergency' },
@@ -483,36 +482,36 @@
                         </div>
 
                         {/* Auto-rotating hero image */}
-                        <div className="lg:col-span-6 relative">
+                        <div className="lg:col-span-6 relative mt-6 lg:mt-0">
                             <div className="relative">
                                 <div className="absolute -inset-4 bg-gradient-to-br from-secondary/15 to-accent/10 rounded-[2.5rem] blur-2xl"></div>
-                                <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/40" style={{minHeight:'420px'}}>
+                                <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/40 h-[260px] sm:h-[420px] lg:h-[480px]">
                                     {slides.map((s, i) => (
                                         <img key={i} src={s.img} alt={s.imgAlt}
-                                            className={`w-full h-full object-cover max-h-[520px] transition-all duration-800 ease-out ${i === current ? 'opacity-100 scale-100 relative' : 'opacity-0 scale-105 absolute inset-0 pointer-events-none'}`} />
+                                            className={`w-full h-full object-cover transition-all duration-800 ease-out ${i === current ? 'opacity-100 scale-100 relative' : 'opacity-0 scale-105 absolute inset-0 pointer-events-none'}`} />
                                     ))}
                                     <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent"></div>
                                 </div>
                             </div>
                             {/* Floating glass card — left */}
-                            <div className="absolute -bottom-6 -left-4 sm:-left-6 glass rounded-2xl shadow-xl p-4 flex items-center gap-3 animate-float z-10">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-secondary-dark flex items-center justify-center shadow-md shadow-secondary/20">
-                                    <i className="fa-solid fa-user-doctor text-white"></i>
+                            <div className="absolute -bottom-5 -left-3 sm:-left-6 glass rounded-2xl shadow-xl p-3.5 flex items-center gap-3 animate-float z-10">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-secondary to-secondary-dark flex items-center justify-center shadow-md shadow-secondary/20">
+                                    <i className="fa-solid fa-user-doctor text-white text-xs"></i>
                                 </div>
                                 <div>
-                                    <span className="text-primary font-black text-xl">540+</span>
-                                    <p className="text-[11px] text-slate-500 font-medium">Specialists</p>
+                                    <span className="text-primary font-black text-lg leading-none">540+</span>
+                                    <p className="text-[10px] text-slate-500 font-medium mt-0.5">Specialists</p>
                                 </div>
                             </div>
                             {/* Floating glass card — right */}
-                            <div className="absolute -top-3 -right-2 sm:-right-4 glass rounded-2xl shadow-xl p-3.5 animate-float-delay z-10">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></div>
-                                    <span className="text-xs font-bold text-slate-700">Live Monitoring</span>
+                            <div className="absolute -top-3 -right-2 sm:-right-4 glass rounded-2xl shadow-xl p-3 animate-float-delay z-10">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                                    <span className="text-[10px] font-bold text-slate-700">Live Monitoring</span>
                                 </div>
                                 <div className="flex items-end gap-[3px]">
                                     {[38,62,48,78,52,68,88,58,72,44,82].map((h,i) => (
-                                        <div key={i} className="w-[5px] rounded-full bg-gradient-to-t from-secondary to-secondary-light" style={{height: h/4.5+'px', opacity: 0.5 + (h/176)}}></div>
+                                        <div key={i} className="w-[4px] rounded-full bg-gradient-to-t from-secondary to-secondary-light" style={{height: h/6+'px', opacity: 0.5 + (h/176)}}></div>
                                     ))}
                                 </div>
                             </div>

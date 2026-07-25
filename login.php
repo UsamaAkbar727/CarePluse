@@ -104,34 +104,55 @@ $token = generate_csrf_token();
     
     <style>
         :root {
-            --bg: #f8fafc;
-            --accent: #4f46e5;
-            --accent-glow: rgba(79, 70, 229, 0.2);
-            --text-dark: #0f172a;
+            --bg: #f8f6f2; /* Warm background from landing page */
+            --primary: #0b2b3c;
+            --secondary: #1c7e6f;
+            --secondary-dark: #115a4f;
+            --accent: #c97d4b;
+            --accent-glow: rgba(28, 126, 111, 0.15);
+            --text-dark: #0b2b3c;
             --text-muted: #64748b;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--bg);
+            background: 
+                radial-gradient(circle 500px at 10% 15%, rgba(28, 126, 111, 0.28), transparent 75%),
+                radial-gradient(circle 500px at 90% 85%, rgba(201, 125, 75, 0.24), transparent 75%),
+                linear-gradient(135deg, #f2edd8 0%, #ffffff 50%, #e2dcc5 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text-dark);
+            position: relative;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(28, 126, 111, 0.18) 1.5px, transparent 1.5px);
+            background-size: 20px 20px;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 1;
         }
 
         .login-wrapper {
             width: 100%;
-            max-width: 440px;
-            padding: 20px;
+            max-width: 390px; /* Reduced width */
+            padding: 16px;
         }
 
         .login-card {
             background: #ffffff;
-            border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.05);
-            padding: 48px 40px;
+            border-radius: 20px; /* Reduced border radius */
+            box-shadow: 0 10px 30px rgba(11, 43, 60, 0.06), 0 1px 3px rgba(11, 43, 60, 0.02);
+            padding: 32px 24px; /* Reduced padding from 48px 40px */
             position: relative;
             overflow: hidden;
         }
@@ -141,59 +162,85 @@ $token = generate_csrf_token();
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 6px;
-            background: linear-gradient(90deg, #4f46e5, #ec4899);
+            background: linear-gradient(90deg, var(--secondary), var(--accent), var(--primary));
+        }
+
+        .btn-back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--secondary);
+            font-size: 13px; /* Slightly smaller text */
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            padding: 8px 14px; /* Reduced padding */
+            border-radius: 10px;
+            background: #ffffff;
+            box-shadow: 0 4px 15px rgba(11, 43, 60, 0.03);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 16px;
+        }
+
+        .btn-back-home:hover {
+            color: var(--primary);
+            background: #ffffff;
+            border-color: var(--secondary);
+            transform: translateX(-3px);
+            box-shadow: 0 4px 20px rgba(28, 126, 111, 0.12);
         }
 
         .brand-icon {
-            width: 64px; height: 64px;
-            background: linear-gradient(135deg, var(--accent), #6366f1);
-            border-radius: 18px;
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            color: #ffffff; font-size: 28px;
-            box-shadow: 0 8px 25px var(--accent-glow);
-            margin: 0 auto 24px;
+            color: #ffffff; font-size: 16px;
+            box-shadow: 0 4px 12px rgba(28, 126, 111, 0.2);
+            margin: 0;
         }
 
         .form-control {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
-            padding: 14px 18px;
-            border-radius: 12px;
-            font-size: 15px;
+            padding: 11px 15px; /* Reduced vertical padding */
+            border-radius: 10px;
+            font-size: 14px;
             transition: all 0.2s;
         }
 
         .form-control:focus {
             background: #ffffff;
-            border-color: var(--accent);
+            border-color: var(--secondary);
             box-shadow: 0 0 0 4px var(--accent-glow);
         }
 
         .form-label {
-            font-size: 13px;
+            font-size: 11px; /* Reduced label text size */
             font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 8px;
+            margin-bottom: 5px; /* Reduced space below label */
         }
 
         .btn-login {
-            background: var(--accent);
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
             border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 15px;
+            padding: 11px; /* Reduced button padding */
+            border-radius: 10px;
+            font-size: 14px;
             font-weight: 600;
             color: #ffffff;
-            box-shadow: 0 6px 20px var(--accent-glow);
+            box-shadow: 0 6px 20px rgba(28, 126, 111, 0.2);
             transition: all 0.2s;
         }
 
         .btn-login:hover {
-            background: #4338ca;
+            background: var(--secondary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px var(--accent-glow);
+            box-shadow: 0 8px 25px rgba(28, 126, 111, 0.3);
+            color: #ffffff;
         }
 
         .alert-error {
@@ -236,7 +283,7 @@ $token = generate_csrf_token();
         }
 
         .password-toggle-icon:hover {
-            color: var(--accent);
+            color: var(--secondary);
         }
 
         .password-toggle-icon:focus {
@@ -248,9 +295,13 @@ $token = generate_csrf_token();
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             color: #475569;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 12px;
+            padding: 5px 10px; /* Compact padding */
+            border-radius: 6px;
+            font-size: 11px; /* Slightly smaller text */
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
             font-weight: 500;
             transition: all 0.2s;
             cursor: pointer;
@@ -258,27 +309,36 @@ $token = generate_csrf_token();
 
         .demo-cred-btn:hover {
             background: var(--accent-glow);
-            border-color: var(--accent);
-            color: var(--accent);
+            border-color: var(--secondary);
+            color: var(--secondary);
             transform: translateY(-1px);
         }
 
         .text-indigo {
-            color: #4f46e5;
+            color: var(--secondary);
         }
     </style>
 </head>
 <body>
 
     <div class="login-wrapper">
+        <!-- Back to Home Button -->
+        <div class="text-start">
+            <a href="index.php" class="btn-back-home">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+
         <div class="login-card">
             
-            <div class="text-center mb-4">
-                <div class="brand-icon">
-                    <i class="fas fa-heart-pulse"></i>
+            <div class="text-center mb-3">
+                <div class="d-inline-flex align-items-center justify-content-center gap-2 mb-1">
+                    <div class="brand-icon">
+                        <i class="fas fa-heart-pulse"></i>
+                    </div>
+                    <span class="fs-4 fw-black tracking-tight" style="color: var(--primary); font-family: 'Outfit', sans-serif;">Care<span style="color: var(--secondary);">Pulse</span></span>
                 </div>
-                <h3 class="fw-bolder mb-2" style="letter-spacing: -0.5px;">Welcome Back</h3>
-                <p class="text-muted" style="font-size: 15px;">Sign in to CarePulse portal</p>
+                <p class="text-muted mb-0" style="font-size: 13px;">Sign in to Portal</p>
             </div>
 
             <?php if ($error): ?>
@@ -291,25 +351,25 @@ $token = generate_csrf_token();
             <form method="POST">
                 <input type="hidden" name="csrf_token" value="<?= esc($token) ?>">
                 
-                <div class="mb-4">
+                <div class="mb-3">
                     <label class="form-label">Username</label>
-                    <input type="text" name="username" id="username" class="form-control" placeholder="Enter your username" value="<?= esc($_POST['username'] ?? '') ?>" required autofocus autocomplete="off">
+                    <input type="text" name="username" id="username" class="form-control" placeholder="Enter username" value="<?= esc($_POST['username'] ?? '') ?>" required autofocus autocomplete="off">
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-3">
                     <label class="form-label">Password</label>
                     <div class="password-field-container">
-                        <input type="password" name="password" id="password" class="form-control" placeholder="Enter your password" required autocomplete="current-password">
+                        <input type="password" name="password" id="password" class="form-control" placeholder="Enter password" required autocomplete="current-password">
                         <button type="button" class="password-toggle-icon" id="togglePassword" tabindex="-1">
                             <i class="far fa-eye" id="toggleIcon"></i>
                         </button>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="remember" style="cursor: pointer;">
-                        <label class="form-check-label text-muted" for="remember" style="font-size: 14px; cursor: pointer; user-select: none;">
+                        <label class="form-check-label text-muted" for="remember" style="font-size: 13px; cursor: pointer; user-select: none;">
                             Remember me
                         </label>
                     </div>
@@ -320,9 +380,9 @@ $token = generate_csrf_token();
                 </button>
             </form>
 
-            <div class="mt-4 pt-3 border-top text-center">
-                <p class="text-center text-muted mb-2" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Quick Demo Accounts (Click to Fill)</p>
-                <div class="d-flex flex-wrap gap-2 justify-content-center">
+            <div class="mt-3 pt-2 border-top text-center">
+                <p class="text-center text-muted mb-1.5" style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Quick Demo Accounts</p>
+                <div class="d-flex flex-wrap gap-1.5 justify-content-center">
                     <button type="button" class="btn btn-sm btn-outline-primary demo-cred-btn" data-username="admin" data-password="Admin@123">
                         <i class="fas fa-user-shield me-1"></i> Admin
                     </button>
