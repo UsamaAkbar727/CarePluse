@@ -322,7 +322,7 @@ $token = generate_csrf_token();
             <div class="mt-4 pt-3 border-top text-center">
                 <p class="text-center text-muted mb-2" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Quick Demo Accounts (Click to Fill)</p>
                 <div class="d-flex flex-wrap gap-2 justify-content-center">
-                    <button type="button" class="btn btn-sm btn-outline-primary demo-cred-btn" data-username="admin" data-password="password">
+                    <button type="button" class="btn btn-sm btn-outline-primary demo-cred-btn" data-username="admin" data-password="Admin@123">
                         <i class="fas fa-user-shield me-1"></i> Admin
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-info demo-cred-btn" data-username="doctor1" data-password="password">
