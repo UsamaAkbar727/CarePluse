@@ -32,18 +32,82 @@ $predictive = CarePulseAI::getPredictiveAnalytics();
     </div>
 </div>
 
-<!-- AI Predictive Alert Banner -->
-<div class="alert alert-primary border-0 shadow-sm rounded-lg mb-4 p-3 bg-gradient-primary text-white d-flex align-items-center justify-content-between">
+<!-- AI Predictive Alert Banner (Premium Styling & Contrast Fix) -->
+<style>
+    .ai-insight-banner {
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.3), 0 8px 10px -6px rgba(79, 70, 229, 0.2);
+        border: none;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 28px;
+    }
+    .ai-insight-banner::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .ai-insight-icon-container {
+        width: 52px;
+        height: 52px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 18px;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease;
+    }
+    .ai-insight-banner:hover .ai-insight-icon-container {
+        transform: rotate(15deg) scale(1.05);
+    }
+    .ai-insight-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #ffffff;
+        padding: 8px 16px;
+        border-radius: 99px;
+        font-weight: 700;
+        font-size: 13.5px;
+        letter-spacing: 0.2px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Dark mode adjustments to maintain premium look */
+    body.dark-mode .ai-insight-banner {
+        background: linear-gradient(135deg, #3730a3 0%, #1d4ed8 100%);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+</style>
+<div class="ai-insight-banner d-flex align-items-center justify-content-between flex-wrap gap-3">
     <div class="d-flex align-items-center">
-        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center mr-3" style="width: 45px; height: 45px; flex-shrink:0;">
+        <div class="ai-insight-icon-container">
             <i class="fas fa-brain fa-lg"></i>
         </div>
         <div>
-            <h6 class="font-weight-bold mb-0">AI Clinical Intelligence Insight</h6>
-            <small class="text-white-50"><?= htmlspecialchars($predictive['ai_insight']) ?></small>
+            <h6 class="font-weight-bold mb-1" style="font-size: 16px; letter-spacing: -0.2px;">AI Clinical Intelligence Insight</h6>
+            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.85); font-weight: 500;"><?= htmlspecialchars($predictive['ai_insight']) ?></div>
         </div>
     </div>
-    <span class="badge badge-light text-primary px-3 py-2 font-weight-bold">Occupancy Forecast: <?= $predictive['projected_occupancy_peak'] ?>%</span>
+    <div>
+        <span class="ai-insight-badge">
+            <i class="fas fa-chart-line mr-1"></i> Occupancy Forecast: <?= $predictive['projected_occupancy_peak'] ?>%
+        </span>
+    </div>
 </div>
 
 <!-- KPI Cards -->
