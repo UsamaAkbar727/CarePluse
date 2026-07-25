@@ -140,7 +140,7 @@
             doc3: 'https://images.unsplash.com/photo-1618498082410-b4aa22193b38?w=400&h=500&fit=crop&q=80',
             doc4: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=500&fit=crop&q=80',
             emerg: 'https://images.unsplash.com/photo-1585842378054-ee2e52f94ba2?w=600&h=400&fit=crop&q=80',
-            surgery: 'https://images.unsplash.com/photo-1551190822-a9ce113ac100?w=700&h=500&fit=crop&q=80',
+            surgery: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?w=700&h=500&fit=crop&q=80',
             scan: 'https://images.unsplash.com/photo-1516069677018-378515003435?w=700&h=500&fit=crop&q=80',
             pat1: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&q=80',
             pat2: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop&q=80',
