@@ -116,6 +116,14 @@
             background-image: radial-gradient(circle, rgba(28,126,111,0.12) 1px, transparent 1px);
             background-size: 18px 18px;
         }
+
+        /* Hero slide transitions */
+        .hero-slide-enter { opacity: 0; transform: translateY(18px); }
+        .hero-slide-active { opacity: 1; transform: translateY(0); transition: all 0.7s cubic-bezier(0.16,1,0.3,1); }
+        .hero-slide-exit { opacity: 0; transform: translateY(-12px); transition: all 0.4s ease-in; position: absolute; top: 0; left: 0; right: 0; }
+        .hero-img-enter { opacity: 0; transform: scale(1.08); }
+        .hero-img-active { opacity: 1; transform: scale(1); transition: all 0.8s cubic-bezier(0.16,1,0.3,1); }
+        .hero-progress { height: 3px; border-radius: 999px; background: #1c7e6f; transition: width 4s linear; }
     </style>
 </head>
 
@@ -148,6 +156,17 @@
             pat4: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=160&h=160&fit=crop&q=80',
             cta: 'https://images.unsplash.com/photo-1504439468489-c8920d796a29?w=1400&h=500&fit=crop&q=80',
             lobby: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=600&h=400&fit=crop&q=80',
+            // Facilities gallery
+            fac1: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&h=600&fit=crop&q=80',
+            fac2: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=800&h=600&fit=crop&q=80',
+            fac3: 'https://images.unsplash.com/photo-1551076805-e1869033e561?w=800&h=600&fit=crop&q=80',
+            fac4: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=600&fit=crop&q=80',
+            fac5: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800&h=600&fit=crop&q=80',
+            fac6: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&h=600&fit=crop&q=80',
+            // Hero slides
+            heroSlide1: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=900&h=600&fit=crop&q=80',
+            heroSlide2: 'https://images.unsplash.com/photo-1551076805-e1869033e561?w=900&h=600&fit=crop&q=80',
+            heroSlide3: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=900&h=600&fit=crop&q=80',
         };
 
         // ---------- hooks ----------
@@ -330,6 +349,58 @@
         //  HERO — gradient mesh, decorative orbs, glass cards
         // ======================================================
         function Hero() {
+            const slides = [
+                {
+                    badge: 'Next-Gen Clinical Intelligence',
+                    heading: <>Advanced <span className="gradient-text">health intelligence</span> for tomorrow</>,
+                    desc: 'Board-certified specialists, AI-assisted diagnostics, and seamless patient journey — all in one ecosystem.',
+                    img: IMG.heroSlide1,
+                    imgAlt: 'Modern healthcare facility corridor',
+                },
+                {
+                    badge: 'Precision Medicine & Care',
+                    heading: <>Where <span className="gradient-text">compassion meets</span> cutting-edge science</>,
+                    desc: 'Our multidisciplinary teams deliver personalized treatments using genomics, robotics, and AI-driven protocols.',
+                    img: IMG.heroSlide2,
+                    imgAlt: 'Advanced ICU monitoring systems',
+                },
+                {
+                    badge: '24/7 Emergency Response',
+                    heading: <>Saving lives with <span className="gradient-text">rapid critical</span> intervention</>,
+                    desc: 'Level-1 trauma center with air ambulance, real-time telemetry, and the fastest door-to-treatment times in the region.',
+                    img: IMG.heroSlide3,
+                    imgAlt: 'Cardiac monitoring and diagnostics',
+                },
+            ];
+
+            const [current, setCurrent] = useState(0);
+            const [animating, setAnimating] = useState(false);
+            const timerRef = useRef(null);
+
+            const goTo = useCallback((idx) => {
+                if (animating) return;
+                setAnimating(true);
+                setCurrent(idx);
+                setTimeout(() => setAnimating(false), 700);
+            }, [animating]);
+
+            useEffect(() => {
+                timerRef.current = setInterval(() => {
+                    setCurrent(prev => (prev + 1) % slides.length);
+                }, 4000);
+                return () => clearInterval(timerRef.current);
+            }, [slides.length]);
+
+            const resetTimer = (idx) => {
+                clearInterval(timerRef.current);
+                goTo(idx);
+                timerRef.current = setInterval(() => {
+                    setCurrent(prev => (prev + 1) % slides.length);
+                }, 4000);
+            };
+
+            const slide = slides[current];
+
             return (
                 <section id="home" className="hero-mesh overflow-hidden relative">
                     {/* Decorative orbs */}
@@ -341,20 +412,50 @@
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-10 items-center py-20 lg:py-28 relative">
                         <div className="lg:col-span-6 space-y-7">
+                            {/* Animated badge */}
                             <FadeIn>
-                                <span className="inline-flex items-center gap-2 bg-secondary/10 text-secondary text-xs font-bold px-4 py-2 rounded-full tracking-wide">
+                                <span key={'badge-'+current} className="inline-flex items-center gap-2 bg-secondary/10 text-secondary text-xs font-bold px-4 py-2 rounded-full tracking-wide hero-slide-active">
                                     <span className="w-2 h-2 bg-secondary rounded-full animate-pulse"></span>
-                                    Next-Gen Clinical Intelligence
+                                    {slide.badge}
                                 </span>
                             </FadeIn>
-                            <FadeIn delay={100}>
-                                <h1 className="font-outfit font-black text-4xl sm:text-5xl lg:text-[3.5rem] text-slate-900 leading-[1.08] tracking-tight">
-                                    Advanced <span className="gradient-text">health intelligence</span> for tomorrow
-                                </h1>
-                            </FadeIn>
-                            <FadeIn delay={200}>
-                                <p className="text-slate-500 text-base lg:text-lg max-w-md leading-relaxed">Board-certified specialists, AI-assisted diagnostics, and seamless patient journey — all in one ecosystem.</p>
-                            </FadeIn>
+
+                            {/* Auto-rotating heading */}
+                            <div className="relative min-h-[140px] sm:min-h-[160px] lg:min-h-[180px]">
+                                {slides.map((s, i) => (
+                                    <h1 key={i}
+                                        className={`font-outfit font-black text-4xl sm:text-5xl lg:text-[3.5rem] text-slate-900 leading-[1.08] tracking-tight transition-all duration-700 ease-out ${i === current ? 'opacity-100 translate-y-0 relative' : 'opacity-0 translate-y-4 absolute top-0 left-0 right-0 pointer-events-none'}`}>
+                                        {s.heading}
+                                    </h1>
+                                ))}
+                            </div>
+
+                            {/* Auto-rotating description */}
+                            <div className="relative min-h-[52px]">
+                                {slides.map((s, i) => (
+                                    <p key={i}
+                                        className={`text-slate-500 text-base lg:text-lg max-w-md leading-relaxed transition-all duration-600 delay-100 ease-out ${i === current ? 'opacity-100 translate-y-0 relative' : 'opacity-0 translate-y-3 absolute top-0 left-0 right-0 pointer-events-none'}`}>
+                                        {s.desc}
+                                    </p>
+                                ))}
+                            </div>
+
+                            {/* Slide indicators */}
+                            <div className="flex items-center gap-3">
+                                {slides.map((_, i) => (
+                                    <button key={i} onClick={() => resetTimer(i)} className="group flex flex-col items-start gap-1.5">
+                                        <span className={`text-[11px] font-bold transition-all duration-300 ${i === current ? 'text-secondary' : 'text-slate-400'}`}>
+                                            0{i + 1}
+                                        </span>
+                                        <div className="w-12 h-[3px] bg-slate-200 rounded-full overflow-hidden">
+                                            <div className={`h-full rounded-full transition-all ${i === current ? 'bg-secondary' : 'bg-transparent'}`}
+                                                style={{ width: i === current ? '100%' : '0%', transition: i === current ? 'width 4s linear' : 'width 0.3s' }}>
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+
                             <FadeIn delay={300}>
                                 <div className="flex flex-wrap gap-4 items-center">
                                     <button onClick={() => document.getElementById('contact').scrollIntoView({behavior:'smooth'})} className="group bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded-full font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 flex items-center gap-2">
@@ -379,38 +480,40 @@
                             </FadeIn>
                         </div>
 
+                        {/* Auto-rotating hero image */}
                         <div className="lg:col-span-6 relative">
-                            <FadeIn dir="right" className="relative">
-                                <div className="relative">
-                                    <div className="absolute -inset-4 bg-gradient-to-br from-secondary/15 to-accent/10 rounded-[2.5rem] blur-2xl"></div>
-                                    <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/40">
-                                        <img src={IMG.hero} alt="Modern healthcare facility" className="w-full h-full object-cover max-h-[520px]" />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent"></div>
-                                    </div>
+                            <div className="relative">
+                                <div className="absolute -inset-4 bg-gradient-to-br from-secondary/15 to-accent/10 rounded-[2.5rem] blur-2xl"></div>
+                                <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/40" style={{minHeight:'420px'}}>
+                                    {slides.map((s, i) => (
+                                        <img key={i} src={s.img} alt={s.imgAlt}
+                                            className={`w-full h-full object-cover max-h-[520px] transition-all duration-800 ease-out ${i === current ? 'opacity-100 scale-100 relative' : 'opacity-0 scale-105 absolute inset-0 pointer-events-none'}`} />
+                                    ))}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent"></div>
                                 </div>
-                                {/* Floating glass card — left */}
-                                <div className="absolute -bottom-6 -left-4 sm:-left-6 glass rounded-2xl shadow-xl p-4 flex items-center gap-3 animate-float z-10">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-secondary-dark flex items-center justify-center shadow-md shadow-secondary/20">
-                                        <i className="fa-solid fa-user-doctor text-white"></i>
-                                    </div>
-                                    <div>
-                                        <span className="text-primary font-black text-xl">540+</span>
-                                        <p className="text-[11px] text-slate-500 font-medium">Specialists</p>
-                                    </div>
+                            </div>
+                            {/* Floating glass card — left */}
+                            <div className="absolute -bottom-6 -left-4 sm:-left-6 glass rounded-2xl shadow-xl p-4 flex items-center gap-3 animate-float z-10">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-secondary-dark flex items-center justify-center shadow-md shadow-secondary/20">
+                                    <i className="fa-solid fa-user-doctor text-white"></i>
                                 </div>
-                                {/* Floating glass card — right */}
-                                <div className="absolute -top-3 -right-2 sm:-right-4 glass rounded-2xl shadow-xl p-3.5 animate-float-delay z-10">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></div>
-                                        <span className="text-xs font-bold text-slate-700">Live Monitoring</span>
-                                    </div>
-                                    <div className="flex items-end gap-[3px]">
-                                        {[38,62,48,78,52,68,88,58,72,44,82].map((h,i) => (
-                                            <div key={i} className="w-[5px] rounded-full bg-gradient-to-t from-secondary to-secondary-light" style={{height: h/4.5+'px', opacity: 0.5 + (h/176)}}></div>
-                                        ))}
-                                    </div>
+                                <div>
+                                    <span className="text-primary font-black text-xl">540+</span>
+                                    <p className="text-[11px] text-slate-500 font-medium">Specialists</p>
                                 </div>
-                            </FadeIn>
+                            </div>
+                            {/* Floating glass card — right */}
+                            <div className="absolute -top-3 -right-2 sm:-right-4 glass rounded-2xl shadow-xl p-3.5 animate-float-delay z-10">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                                    <span className="text-xs font-bold text-slate-700">Live Monitoring</span>
+                                </div>
+                                <div className="flex items-end gap-[3px]">
+                                    {[38,62,48,78,52,68,88,58,72,44,82].map((h,i) => (
+                                        <div key={i} className="w-[5px] rounded-full bg-gradient-to-t from-secondary to-secondary-light" style={{height: h/4.5+'px', opacity: 0.5 + (h/176)}}></div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -514,6 +617,78 @@
                                     </div>
                                 </div>
                             </FadeIn>
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        // ======================================================
+        //  FACILITIES — hospital gallery showcase
+        // ======================================================
+        function Facilities() {
+            const gallery = [
+                { img: IMG.fac1, title: 'Main Reception & Lobby', tag: 'Reception', span: 'col-span-2 row-span-2' },
+                { img: IMG.fac2, title: 'Advanced Operation Theater', tag: 'Surgery', span: 'col-span-1 row-span-1' },
+                { img: IMG.fac3, title: 'Intensive Care Unit', tag: 'ICU', span: 'col-span-1 row-span-1' },
+                { img: IMG.fac4, title: 'Diagnostic Imaging Center', tag: 'Radiology', span: 'col-span-1 row-span-2' },
+                { img: IMG.fac5, title: 'Emergency Department', tag: 'Emergency', span: 'col-span-1 row-span-1' },
+                { img: IMG.fac6, title: 'Research & Innovation Lab', tag: 'Research', span: 'col-span-1 row-span-1' },
+            ];
+            const highlights = [
+                { icon: 'fa-hospital', num: 12, suffix: '+', label: 'Operation Theaters' },
+                { icon: 'fa-bed', num: 500, suffix: '+', label: 'Bed Capacity' },
+                { icon: 'fa-square-parking', num: 800, suffix: '+', label: 'Parking Spaces' },
+                { icon: 'fa-elevator', num: 15, suffix: '', label: 'Floors' },
+            ];
+            return (
+                <section className="section-pad bg-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-96 h-96 dot-pattern rounded-full pointer-events-none opacity-30"></div>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <FadeIn className="text-center max-w-2xl mx-auto mb-14">
+                            <span className="inline-flex items-center gap-2 text-secondary font-bold text-xs tracking-[0.2em] uppercase">
+                                <span className="w-8 h-[2px] bg-secondary rounded-full"></span> Infrastructure <span className="w-8 h-[2px] bg-secondary rounded-full"></span>
+                            </span>
+                            <h2 className="font-outfit font-black text-3xl sm:text-4xl text-slate-900 mt-3">World-class facilities</h2>
+                            <p className="text-slate-500 text-sm mt-3">State-of-the-art infrastructure designed for optimal patient outcomes and comfort.</p>
+                        </FadeIn>
+
+                        {/* Gallery masonry grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[180px] md:auto-rows-[200px]">
+                            {gallery.map((item, i) => (
+                                <FadeIn key={i} delay={i * 80} className={`${item.span} rounded-2xl overflow-hidden relative group cursor-pointer`}>
+                                    <img src={item.img} alt={item.title} className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-60 group-hover:opacity-90 transition-all duration-500"></div>
+                                    <div className="absolute top-4 left-4 z-10">
+                                        <span className="inline-block bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-wider uppercase">{item.tag}</span>
+                                    </div>
+                                    <div className="absolute bottom-0 left-0 right-0 p-5 z-10 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                                        <h4 className="font-outfit font-bold text-white text-lg leading-snug">{item.title}</h4>
+                                        <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                                            <span className="text-secondary-light text-sm font-medium">Explore</span>
+                                            <i className="fa-solid fa-arrow-right text-secondary-light text-xs group-hover:translate-x-1 transition-transform"></i>
+                                        </div>
+                                    </div>
+                                </FadeIn>
+                            ))}
+                        </div>
+
+                        {/* Facility highlights */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
+                            {highlights.map((h, i) => {
+                                const [ref, count] = useCounter(h.num);
+                                return (
+                                    <FadeIn key={i} delay={i * 80}>
+                                        <div ref={ref} className="bg-gradient-to-br from-slate-50 to-white rounded-2xl p-6 border border-slate-200 text-center card-hover group">
+                                            <div className="w-12 h-12 mx-auto rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 group-hover:scale-110 transition-all duration-300">
+                                                <i className={`fa-solid ${h.icon} text-secondary text-lg`}></i>
+                                            </div>
+                                            <div className="font-outfit font-black text-3xl text-primary mt-3 stat-number">{count}{h.suffix}</div>
+                                            <p className="text-slate-500 text-sm font-medium mt-1">{h.label}</p>
+                                        </div>
+                                    </FadeIn>
+                                );
+                            })}
                         </div>
                     </div>
                 </section>
@@ -1022,6 +1197,7 @@
                         <Hero />
                         <Stats />
                         <About />
+                        <Facilities />
                         <Departments />
                         <Doctors />
                         <Services />
