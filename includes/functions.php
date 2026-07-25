@@ -331,6 +331,12 @@ function esc($str)
     return htmlspecialchars((string)($str ?? ''), ENT_QUOTES, 'UTF-8');
 }
 
+// Sanitize inputs
+function sanitize($str)
+{
+    return trim(esc($str));
+}
+
 /**
  * Flash messages
  */
