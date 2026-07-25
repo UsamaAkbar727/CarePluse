@@ -1,33 +1,22 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-if (isset($_SESSION['user_id']) && !isset($_GET['public'])) {
-    header('Location: admin_dashboard.php');
-    exit();
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CarePulse — Advanced Healthcare For a Better Tomorrow</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    
-    <!-- Google Fonts - Outfit for Headings, Plus Jakarta Sans for Body -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- Tailwind CSS CDN -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CarePulse — Advanced healthcare ecosystem with board-certified specialists, AI-assisted diagnostics, and seamless patient journey." />
+    <title>CarePulse · Advanced Healthcare Ecosystem</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
     <script>
         tailwind.config = {
             theme: {
@@ -37,919 +26,676 @@ if (isset($_SESSION['user_id']) && !isset($_GET['public'])) {
                         outfit: ['Outfit', 'sans-serif'],
                     },
                     colors: {
-                        primary: { DEFAULT: '#3b82f6', light: '#60a5fa', dark: '#1d4ed8', '50': '#eff6ff' },
-                        secondary: { DEFAULT: '#0d9488', light: '#14b8a6', dark: '#0f766e', '50': '#f0fdfa' },
-                        dark: { DEFAULT: '#080c14', light: '#0f172a', lighter: '#1e293b' },
+                        primary: { DEFAULT: '#0b2b3c', light: '#1a4b5f', dark: '#061a24' },
+                        secondary: { DEFAULT: '#1c7e6f', light: '#2ea392', dark: '#115a4f' },
+                        accent: { DEFAULT: '#c97d4b', light: '#da9a6e', dark: '#a05f33' },
+                        warm: '#f8f6f2',
                     }
                 }
             }
         }
     </script>
-    
     <style>
-        html {
-            scroll-behavior: smooth;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fafcfb; color: #1f2a34; }
+        ::selection { background: #1c7e6f; color: #fff; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #eef3f1; }
+        ::-webkit-scrollbar-thumb { background: #b6cfc8; border-radius: 12px; }
+
+        .glass { background: rgba(255,255,255,0.65); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.35); }
+        .glass-dark { background: rgba(11,43,60,0.7); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+
+        .section-pad { padding: 6rem 0; }
+        @media (max-width: 768px) { .section-pad { padding: 3.5rem 0; } }
+
+        /* ---- animations ---- */
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+        .animate-float-slow { animation: float 8s ease-in-out infinite; }
+        .animate-float-delay { animation: float 6s ease-in-out 2s infinite; }
+
+        @keyframes pulse-ring { 0%{box-shadow:0 0 0 0 rgba(28,126,111,0.4)} 70%{box-shadow:0 0 0 14px rgba(28,126,111,0)} 100%{box-shadow:0 0 0 0 rgba(28,126,111,0)} }
+        .animate-pulse-ring { animation: pulse-ring 2.5s ease-out infinite; }
+
+        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        .shimmer-bg { background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%); background-size: 200% 100%; animation: shimmer 3s infinite; }
+
+        /* ---- hero mesh ---- */
+        .hero-mesh {
+            background:
+                radial-gradient(ellipse 70% 50% at 15% 45%, rgba(28,126,111,0.07) 0%, transparent 65%),
+                radial-gradient(ellipse 50% 70% at 85% 25%, rgba(201,125,75,0.05) 0%, transparent 65%),
+                radial-gradient(ellipse 40% 40% at 50% 80%, rgba(28,126,111,0.04) 0%, transparent 60%),
+                linear-gradient(160deg, #f8f6f2 0%, #ffffff 45%, #eef5f2 100%);
         }
 
-        ::selection {
-            background: #3b82f6;
-            color: #fff;
+        /* ---- gradient text ---- */
+        .gradient-text {
+            background: linear-gradient(135deg, #1c7e6f 0%, #2ea392 50%, #0b2b3c 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            overflow-x: hidden;
-            background-color: #fcfdff;
+        /* ---- card hover ---- */
+        .card-hover { transition: all 0.4s cubic-bezier(0.16,1,0.3,1); }
+        .card-hover:hover { transform: translateY(-6px); box-shadow: 0 20px 44px -12px rgba(0,20,16,0.14); }
+
+        .stat-number { font-variant-numeric: tabular-nums; }
+
+        /* ---- dept card accent ---- */
+        .dept-card { position: relative; }
+        .dept-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,#1c7e6f,#2ea392,#c97d4b); border-radius:999px 999px 0 0; opacity:0; transition:opacity 0.35s; z-index:2; }
+        .dept-card:hover::before { opacity:1; }
+
+        /* ---- testimonial quote ---- */
+        .quote-mark { font-family: Georgia, serif; font-size: 6rem; line-height: 1; color: rgba(28,126,111,0.1); position: absolute; top: -10px; left: 16px; }
+
+        /* ---- wave ---- */
+        .footer-wave { position: relative; }
+        .footer-wave::before {
+            content: ''; position: absolute; top: -50px; left: 0; width: 100%; height: 50px;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 1440 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 25C360 50 720 0 1080 25C1260 37.5 1350 50 1440 50V50H0Z' fill='%23061a24'/%3E%3C/svg%3E") no-repeat bottom center;
+            background-size: 100% 50px;
         }
 
-        /* --- Premium Custom Scrollbar --- */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #080c14;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #1e293b;
-            border-radius: 4px;
-            border: 2px solid #080c14;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #3b82f6;
-        }
+        /* ---- progress dots ---- */
+        .progress-dot { width: 28px; height: 4px; border-radius: 999px; transition: all 0.4s; }
+        .progress-dot.active { width: 40px; background: #1c7e6f; }
+        .progress-dot.inactive { background: #d1d5db; }
 
-        /* --- Custom Keyframes & Animations --- */
-        @keyframes float-slow {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(3deg); }
-        }
-        @keyframes float-mid {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-22px) rotate(-3deg); }
-        }
-        @keyframes pulse-soft {
-            0%, 100% { opacity: 0.8; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(1.05); }
-        }
-        @keyframes rotate-slow {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @keyframes glow-shift {
-            0%, 100% { filter: hue-rotate(0deg) saturate(1); }
-            50% { filter: hue-rotate(30deg) saturate(1.2); }
-        }
+        /* ---- image overlay gradient ---- */
+        .img-overlay { position: relative; overflow: hidden; }
+        .img-overlay::after { content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(11,43,60,0.5) 0%, transparent 50%); transition:opacity 0.4s; }
+        .img-overlay:hover::after { opacity: 0.7; }
 
-        .animate-float-1 { animation: float-slow 6s ease-in-out infinite; }
-        .animate-float-2 { animation: float-mid 8s ease-in-out infinite 0.5s; }
-        .animate-float-3 { animation: float-slow 7s ease-in-out infinite 1s; }
-        .animate-pulse-soft { animation: pulse-soft 4s ease-in-out infinite; }
-        .animate-rotate-slow { animation: rotate-slow 20s linear infinite; }
-        .animate-glow-shift { animation: glow-shift 10s ease-in-out infinite; }
-
-        /* --- Glassmorphism --- */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
-        .glass-panel-dark {
-            background: rgba(15, 23, 42, 0.55);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .glass-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 20px 40px -15px rgba(59, 130, 246, 0.12);
-            border-color: rgba(59, 130, 246, 0.25);
-        }
-
-        /* --- Custom Grid Borders & Accents --- */
-        .border-glow-hover {
-            position: relative;
-            z-index: 1;
-        }
-        .border-glow-hover::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1.5px;
-            background: linear-gradient(135deg, #3b82f6, #0d9488);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            pointer-events: none;
-            z-index: -1;
-        }
-        .border-glow-hover:hover::after {
-            opacity: 1;
-        }
-
-        /* --- FAQ height transition --- */
-        .faq-body {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
-        }
-        .faq-body.open {
-            max-height: 300px;
-        }
-        .faq-plus {
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .faq-plus.open {
-            transform: rotate(45deg);
+        /* ---- dot pattern ---- */
+        .dot-pattern {
+            background-image: radial-gradient(circle, rgba(28,126,111,0.12) 1px, transparent 1px);
+            background-size: 18px 18px;
         }
     </style>
 </head>
 
-<body class="text-slate-600">
+<body>
     <div id="root"></div>
-
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useCallback } = React;
 
-        /* ─── Premium Real Image Assets ─── */
+        // ---------- ALL UNIQUE premium real images ----------
         const IMG = {
-            hero: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=700&h=850&fit=crop&q=80',
-            about: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=700&h=520&fit=crop&q=80',
-            whyChoose: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=620&h=420&fit=crop&q=80',
-            doc1: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=500&fit=crop&q=80',
-            doc2: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=500&fit=crop&q=80',
-            doc3: 'https://images.unsplash.com/photo-1594824476967-48c8b964ac31?w=400&h=500&fit=crop&q=80',
-            doc4: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&h=500&fit=crop&q=80',
-            pat1: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=140&h=140&fit=crop&q=80',
-            pat2: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=140&h=140&fit=crop&q=80',
-            pat3: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=140&h=140&fit=crop&q=80',
-            pat4: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=140&h=140&fit=crop&q=80',
-            emerg: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=640&h=400&fit=crop&q=80',
-            surgery: 'https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=640&h=400&fit=crop&q=80',
+            hero: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=900&h=600&fit=crop&q=80',
+            about1: 'https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=700&h=500&fit=crop&q=80',
+            about2: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=600&h=450&fit=crop&q=80',
+            dept1: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=400&fit=crop&q=80',
+            dept2: 'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=600&h=400&fit=crop&q=80',
+            dept3: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=600&h=400&fit=crop&q=80',
+            dept4: 'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=600&h=400&fit=crop&q=80',
+            dept5: 'https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=600&h=400&fit=crop&q=80',
+            dept6: 'https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?w=600&h=400&fit=crop&q=80',
+            doc1: 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=400&h=500&fit=crop&q=80',
+            doc2: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=400&h=500&fit=crop&q=80',
+            doc3: 'https://images.unsplash.com/photo-1618498082410-b4aa22193b38?w=400&h=500&fit=crop&q=80',
+            doc4: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=500&fit=crop&q=80',
+            emerg: 'https://images.unsplash.com/photo-1585842378054-ee2e52f94ba2?w=600&h=400&fit=crop&q=80',
+            surgery: 'https://images.unsplash.com/photo-1551190822-a9ce113ac100?w=700&h=500&fit=crop&q=80',
+            scan: 'https://images.unsplash.com/photo-1516069677018-378515003435?w=700&h=500&fit=crop&q=80',
+            pat1: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&q=80',
+            pat2: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop&q=80',
+            pat3: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=160&h=160&fit=crop&q=80',
+            pat4: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=160&h=160&fit=crop&q=80',
+            cta: 'https://images.unsplash.com/photo-1504439468489-c8920d796a29?w=1400&h=500&fit=crop&q=80',
+            lobby: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=600&h=400&fit=crop&q=80',
         };
 
-        /* ─── Intersection Observer Hook for Animations ─── */
+        // ---------- hooks ----------
         function useInView(opts = {}) {
             const ref = useRef(null);
-            const [v, setV] = useState(false);
+            const [inView, setInView] = useState(false);
             useEffect(() => {
                 const el = ref.current;
                 if (!el) return;
-                const o = new IntersectionObserver(([e]) => {
-                    if (e.isIntersecting) {
-                        setV(true);
-                        o.unobserve(el);
-                    }
+                const obs = new IntersectionObserver(([e]) => {
+                    if (e.isIntersecting) { setInView(true); obs.unobserve(el); }
                 }, { threshold: 0.1, ...opts });
-                o.observe(el);
-                return () => o.disconnect();
+                obs.observe(el);
+                return () => obs.disconnect();
             }, []);
-            return [ref, v];
+            return [ref, inView];
         }
 
-        /* ─── Count-Up Animation Hook ─── */
-        function useCounter(target, dur = 2000) {
-            const [c, setC] = useState(0);
-            const [ref, iv] = useInView();
+        function useCounter(target, duration = 2000) {
+            const [count, setCount] = useState(0);
+            const [ref, inView] = useInView();
             const ran = useRef(false);
             useEffect(() => {
-                if (iv && !ran.current) {
+                if (inView && !ran.current) {
                     ran.current = true;
-                    const s = performance.now();
-                    const step = (n) => {
-                        const p = Math.min((n - s) / dur, 1);
-                        const e = 1 - Math.pow(1 - p, 3); // Cubic Ease Out
-                        setC(Math.floor(e * target));
+                    const start = performance.now();
+                    const step = (now) => {
+                        const p = Math.min((now - start) / duration, 1);
+                        const eased = 1 - Math.pow(1 - p, 3);
+                        setCount(Math.floor(eased * target));
                         if (p < 1) requestAnimationFrame(step);
                     };
                     requestAnimationFrame(step);
                 }
-            }, [iv, target, dur]);
-            return [ref, c];
+            }, [inView, target, duration]);
+            return [ref, count];
         }
 
-        /* ─── Scroll Y Tracker Hook ─── */
         function useScrollY() {
             const [y, setY] = useState(0);
             useEffect(() => {
-                const h = () => setY(window.scrollY);
-                window.addEventListener('scroll', h, { passive: true });
-                return () => window.removeEventListener('scroll', h);
+                const handler = () => setY(window.scrollY);
+                window.addEventListener('scroll', handler, { passive: true });
+                return () => window.removeEventListener('scroll', handler);
             }, []);
             return y;
         }
 
-        /* ─── Standard Fade-In Reveal Component ─── */
+        // ---------- fade-in component ----------
         function FadeIn({ children, className = '', delay = 0, dir = 'up' }) {
-            const [ref, iv] = useInView();
-            const t = { 
-                up: 'translate-y-12', 
-                down: '-translate-y-12', 
-                left: '-translate-x-12', 
-                right: 'translate-x-12', 
-                none: '' 
-            };
+            const [ref, inView] = useInView();
+            const dirs = { up: 'translate-y-8', down: '-translate-y-8', left: '-translate-x-8', right: 'translate-x-8' };
             return (
-                <div 
-                    ref={ref} 
-                    className={`transition-all duration-1000 cubic-bezier(0.16, 1, 0.3, 1) ${iv ? 'opacity-100 translate-x-0 translate-y-0' : `opacity-0 ${t[dir]}`} ${className}`} 
-                    style={{ transitionDelay: `${delay}ms` }}
-                >
+                <div ref={ref} className={`transition-all duration-700 ease-out ${inView ? 'opacity-100 translate-x-0 translate-y-0' : `opacity-0 ${dirs[dir]}`} ${className}`} style={{ transitionDelay: `${delay}ms` }}>
                     {children}
                 </div>
             );
         }
 
-        /* ─── Global System Data arrays ─── */
-        const depts = [
-            { name: 'Cardiology', icon: 'fa-heart-pulse', desc: 'Advanced diagnostics, state-of-the-art interventional suites, and critical care from leading heart specialists.', c: 'bg-rose-50/80 text-rose-500 border-rose-100' },
-            { name: 'Neurology', icon: 'fa-brain', desc: 'Expert treatment for epilepsy, stroke, and spinal disorders with modern neuro-imaging support.', c: 'bg-violet-50/80 text-violet-500 border-violet-100' },
-            { name: 'Orthopedics', icon: 'fa-bone', desc: 'Robotic joint replacements, reconstructive surgery, and sports medicine for structural restoration.', c: 'bg-sky-50/80 text-sky-500 border-sky-100' },
-            { name: 'Pediatrics', icon: 'fa-baby', desc: 'Compassionate pediatric care, neonatal intensive services, and growth monitoring programs.', c: 'bg-pink-50/80 text-pink-500 border-pink-100' },
-            { name: 'Gynecology', icon: 'fa-venus', desc: 'Specialized healthcare from prenatal management to keyhole laparoscopic gynecological operations.', c: 'bg-teal-50/80 text-teal-500 border-teal-100' },
-            { name: 'Dermatology', icon: 'fa-hand-dots', desc: 'Advanced clinical treatments for complex skin disorders and laser-based cosmetic therapies.', c: 'bg-amber-50/80 text-amber-500 border-amber-100' },
-            { name: 'General Medicine', icon: 'fa-stethoscope', desc: 'Thorough preventive screenings, chronic disease management, and complete family healthcare.', c: 'bg-emerald-50/80 text-emerald-500 border-emerald-100' },
-            { name: 'Emergency Care', icon: 'fa-truck-medical', desc: 'Accredited Level-1 emergency and trauma facility open 24/7/365 with on-site surgical dispatch.', c: 'bg-red-50/80 text-red-500 border-red-100' },
-        ];
-
-        const docs = [
-            { name: 'Dr. Sarah Mitchell', spec: 'Cardiologist', exp: '18 Years', rating: 4.9, img: IMG.doc1 },
-            { name: 'Dr. James Rodriguez', spec: 'Neurologist', exp: '15 Years', rating: 4.8, img: IMG.doc2 },
-            { name: 'Dr. Emily Chen', spec: 'Orthopedic Surgeon', exp: '12 Years', rating: 4.9, img: IMG.doc3 },
-            { name: 'Dr. Michael Patel', spec: 'Pediatrician', exp: '20 Years', rating: 4.7, img: IMG.doc4 },
-        ];
-
-        const svcs = [
-            { title: 'Emergency Care', icon: 'fa-kit-medical', desc: 'Accredited Level-1 trauma response team on-site 24/7 with immediate resuscitation bays and critical response workflows.', img: IMG.emerg, big: true },
-            { title: 'Intensive Care Unit (ICU)', icon: 'fa-bed-pulse', desc: 'Advanced real-time monitor systems with dedicated 1:1 nurse-to-patient ratio support.', big: false },
-            { title: 'Diagnostic Laboratory', icon: 'fa-flask-vial', desc: 'NABL accredited automated processing unit delivering precision results for 2000+ tests.', big: false },
-            { title: '24/7 Portal Pharmacy', icon: 'fa-prescription-bottle-medical', desc: 'In-house digital prescription tracking system ensuring fast, error-free medicine dispensing.', big: false },
-            { title: 'Ambulance Networks', icon: 'fa-truck-medical', desc: 'GPS-integrated mobile life support vehicles with live clinical feed updates back to the hospital.', big: false },
-            { title: 'Radiology Workstation', icon: 'fa-x-ray', desc: 'Equipped with 3T MRI, 128-slice CT scans, and direct link to the central PACS workstation.', big: false },
-            { title: 'Advanced Robotics Surgery', icon: 'fa-syringe', desc: 'Minimally invasive operations performing surgical maneuvers with absolute millimeter accuracy.', img: IMG.surgery, big: true },
-            { title: 'Telehealth Consultations', icon: 'fa-laptop-medical', desc: 'Secure, encrypted high-definition clinical video consultations, digital prescriptions, and EHR tracking from home.', big: false, full: true },
-        ];
-
-        const whyItems = [
-            { title: 'Board-Certified Medical Specialists', desc: 'Every specialist physician is internationally board-certified with extensive clinical experience and clinical research credentials.' },
-            { title: 'Next-Generation Medical Technology', desc: 'Investing in cutting-edge technology including AI-assisted diagnostic tools, 3D imaging, and robotic surgical units.' },
-            { title: 'Patient-First Empathetic Healthcare', desc: 'Formulating customized treatment plans designed specifically around your physical wellness and comfort.' },
-            { title: 'Integrated Continuum of Care', desc: 'From diagnosis through operation to outpatient rehab, your history is tracked seamlessly in our database portal.' },
-        ];
-
-        const testis = [
-            { name: 'Rebecca Thompson', text: 'The cardiology team at CarePulse saved my life. From the emergency room to recovery, every moment was handled with incredible professionalism and genuine compassion. I will never forget their kindness.', rating: 5, img: IMG.pat1 },
-            { name: 'David Kim', text: 'After years of chronic back pain, Dr. Chen performed a minimally invasive spine surgery. I was walking the next day and fully recovered within weeks. The orthopedic team here is absolutely world-class.', rating: 5, img: IMG.pat2 },
-            { name: 'Susan Clarke', text: 'The maternity care exceeded all expectations. The team made what could have been stressful feel safe, comfortable, and even joyful. I recommend their gynecology department to every expecting mother.', rating: 5, img: IMG.pat3 },
-            { name: 'Robert Hayes', text: 'Online consultation was a game-changer during my recovery. Speaking with my neurologist from home while getting thorough medical advice is the future of healthcare. Brilliant system.', rating: 4, img: IMG.pat4 },
-        ];
-
-        const faqs = [
-            { q: 'How do I book an appointment?', a: 'You can book an appointment easily by submitting the Contact/Booking form at the bottom of this page, calling our direct line +1 (555) 234-5678, or using our client portal.' },
-            { q: 'What insurance plans do you accept?', a: 'CarePulse works with major insurance carriers including Blue Cross Blue Shield, Aetna, UnitedHealthcare, Cigna, and Medicare. Our billing office will verify your coverage prior to arrival.' },
-            { q: 'Are emergency services available 24/7?', a: 'Yes. Our Level-1 Trauma Emergency Department operates 24/7/365 with specialty physicians on-site. Immediate ambulance coordination can be reached via +1 (555) 911.' },
-            { q: 'How do I access my diagnostic records?', a: 'You can access all laboratory reports, radiology scans, and prescriptions securely via our Patient Portal. Simply log in with your credentials, or request physical records at front desk.' },
-            { q: 'Do you provide international patient services?', a: 'Yes. CarePulse coordinate visas, translations, direct flight medical transport, and specialized lodging support for international visitors.' },
-        ];
-
-        /* ─── Scroll Progress Indicator ─── */
-        function ScrollProgress() {
-            const y = useScrollY();
-            const h = typeof document !== 'undefined' ? document.documentElement.scrollHeight - window.innerHeight : 1;
-            const pct = h > 0 ? (y / h) * 100 : 0;
-            return (
-                <div className="fixed top-0 left-0 right-0 z-[100] h-[4px]">
-                    <div 
-                        className="h-full bg-gradient-to-r from-primary via-secondary to-primary-light transition-all duration-75" 
-                        style={{ width: `${pct}%` }}
-                    ></div>
-                </div>
-            );
-        }
-
-        /* ─── Navigation Header Component ─── */
+        // ======================================================
+        //  NAVBAR
+        // ======================================================
         function Navbar() {
-            const scrollY = useScrollY();
-            const [mob, setMob] = useState(false);
-            const sc = scrollY > 40;
-            
-            const links = ['Home', 'About', 'Departments', 'Doctors', 'Services', 'Testimonials', 'Contact'];
-            
-            useEffect(() => {
-                document.body.style.overflow = mob ? 'hidden' : '';
-                return () => { document.body.style.overflow = ''; }
-            }, [mob]);
+            const [mobile, setMobile] = useState(false);
+            const [activeLink, setActiveLink] = useState('Home');
+            const y = useScrollY();
+            const links = [
+                { name: 'Home', icon: 'fa-house' },
+                { name: 'About', icon: 'fa-building-columns' },
+                { name: 'Departments', icon: 'fa-hospital' },
+                { name: 'Doctors', icon: 'fa-user-doctor' },
+                { name: 'Services', icon: 'fa-hand-holding-medical' },
+                { name: 'Testimonials', icon: 'fa-quote-left' },
+                { name: 'Contact', icon: 'fa-envelope' },
+            ];
+            const scrollTo = (name) => { setMobile(false); setActiveLink(name); document.getElementById(name.toLowerCase())?.scrollIntoView({ behavior: 'smooth' }); };
+            useEffect(() => { document.body.style.overflow = mobile ? 'hidden' : ''; return () => { document.body.style.overflow = ''; }; }, [mobile]);
 
-            const go = (id) => {
-                setMob(false);
-                document.getElementById(id.toLowerCase())?.scrollIntoView({ behavior: 'smooth' });
-            };
+            // Track active section on scroll
+            useEffect(() => {
+                const sections = links.map(l => document.getElementById(l.name.toLowerCase())).filter(Boolean);
+                const handler = () => {
+                    let current = 'Home';
+                    sections.forEach(sec => { if (sec.getBoundingClientRect().top <= 120) current = sec.id.charAt(0).toUpperCase() + sec.id.slice(1); });
+                    setActiveLink(current);
+                };
+                window.addEventListener('scroll', handler, { passive: true });
+                return () => window.removeEventListener('scroll', handler);
+            }, []);
 
             return (
                 <>
-                    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${sc ? 'py-2 bg-dark/85 backdrop-blur-xl border-b border-white/5 shadow-xl' : 'py-5 bg-transparent'}`}>
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="flex items-center justify-between">
-                                {/* Brand Logo */}
-                                <a href="#" className="flex items-center gap-3 group" aria-label="CarePulse Home">
-                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform duration-300">
-                                        <i className="fa-solid fa-heart-pulse text-white text-xl animate-pulse-soft"></i>
-                                    </div>
-                                    <div>
-                                        <span className="font-outfit font-extrabold text-lg tracking-tight text-white uppercase block leading-tight">
-                                            Care<span className="text-primary-light">Pulse</span>
-                                        </span>
-                                        <span className="text-[9px] font-bold text-slate-400 tracking-[0.25em] uppercase leading-none block">
-                                            Clinical Portal
-                                        </span>
-                                    </div>
-                                </a>
-
-                                {/* Desktop Navigation Links */}
-                                <div className="hidden lg:flex items-center gap-1.5">
-                                    {links.map(l => (
-                                        <button 
-                                            key={l} 
-                                            onClick={() => go(l)} 
-                                            className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-300"
-                                        >
-                                            {l}
-                                        </button>
-                                    ))}
+                {/* Top gradient accent line */}
+                <div className="fixed top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-secondary via-accent to-secondary z-[60]"></div>
+                <header className={`sticky top-0 z-50 transition-all duration-500 ${y > 50 ? 'bg-white/95 backdrop-blur-xl shadow-lg shadow-slate-900/[0.04] border-b border-slate-200/50' : 'bg-white/70 backdrop-blur-md border-b border-transparent'}`} style={{marginTop:'3px'}}>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[72px]">
+                        {/* Logo */}
+                        <div className="flex items-center gap-3 group cursor-pointer" onClick={() => scrollTo('Home')}>
+                            <div className="relative">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-secondary to-primary flex items-center justify-center shadow-lg shadow-secondary/25 group-hover:shadow-secondary/40 transition-all duration-300 group-hover:scale-105">
+                                    <i className="fa-solid fa-heart-pulse text-white text-sm"></i>
                                 </div>
-
-                                {/* Actions */}
-                                <div className="hidden lg:flex items-center gap-3">
-                                    <a 
-                                        href="login.php" 
-                                        className="flex items-center gap-2 border border-white/10 hover:border-primary/50 text-white bg-white/5 hover:bg-primary px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300"
-                                    >
-                                        <i className="fa-solid fa-right-to-bracket text-[10px]"></i> Portal Login
-                                    </a>
-                                    <button 
-                                        onClick={() => go('Contact')} 
-                                        className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-primary/25 hover:shadow-primary/45 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300"
-                                    >
-                                        <i className="fa-regular fa-calendar-check text-[10px]"></i> Book Appointment
-                                    </button>
-                                </div>
-
-                                {/* Mobile Toggle */}
-                                <button 
-                                    className="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-colors" 
-                                    onClick={() => setMob(true)} 
-                                    aria-label="Open navigation menu"
-                                >
-                                    <i className="fa-solid fa-bars-staggered"></i>
-                                </button>
+                                <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white animate-pulse"></div>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="font-outfit font-black text-xl tracking-tight text-primary leading-none">Care<span className="gradient-text">Pulse</span></span>
+                                <span className="text-[9px] font-semibold text-slate-400 tracking-[0.15em] uppercase leading-none mt-0.5">Healthcare</span>
                             </div>
                         </div>
-                    </nav>
 
-                    {/* Mobile Menu Drawer */}
-                    {mob && (
+                        {/* Desktop nav */}
+                        <nav className="hidden lg:flex items-center bg-slate-50/80 rounded-full px-1.5 py-1.5 border border-slate-200/60">
+                            {links.map(l => (
+                                <button key={l.name} onClick={() => scrollTo(l.name)}
+                                    className={`px-4 py-2 text-[13px] font-semibold rounded-full transition-all duration-300 ${activeLink === l.name ? 'bg-white text-primary shadow-sm shadow-slate-200/80' : 'text-slate-500 hover:text-primary hover:bg-white/60'}`}>
+                                    {l.name}
+                                </button>
+                            ))}
+                        </nav>
+
+                        {/* Right actions */}
+                        <div className="flex items-center gap-2.5">
+                            <a href="login.php" className="hidden sm:inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-primary px-4 py-2.5 rounded-full border border-slate-200/80 hover:border-primary/20 hover:bg-primary/[0.03] transition-all duration-300">
+                                <i className="fa-solid fa-arrow-right-to-bracket text-xs"></i> Login
+                            </a>
+                            <button onClick={() => scrollTo('Contact')} className="bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] transition-all duration-300 flex items-center gap-2">
+                                <i className="fa-solid fa-calendar-check text-xs"></i> Book Slot
+                            </button>
+                            <button onClick={() => setMobile(true)} className="lg:hidden w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-100 rounded-xl transition"><i className="fa-solid fa-bars-staggered"></i></button>
+                        </div>
+                    </div>
+
+                    {/* Mobile drawer */}
+                    {mobile && (
                         <div className="fixed inset-0 z-[60] flex justify-end">
-                            <div className="absolute inset-0 bg-dark/60 backdrop-blur-md transition-opacity" onClick={() => setMob(false)}></div>
-                            <div className="relative w-80 max-w-[85vw] bg-dark-light border-l border-white/5 shadow-2xl flex flex-col p-6 animate-slide-in-right">
-                                <div className="flex items-center justify-between pb-6 border-b border-white/5">
-                                    <span className="font-outfit font-bold text-white text-base tracking-wide uppercase">Menu</span>
-                                    <button 
-                                        onClick={() => setMob(false)} 
-                                        className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 hover:text-white"
-                                        aria-label="Close menu"
-                                    >
-                                        <i className="fa-solid fa-xmark"></i>
-                                    </button>
+                            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setMobile(false)}></div>
+                            <div className="relative w-80 bg-white shadow-2xl flex flex-col h-full border-l border-slate-200 overflow-y-auto">
+                                {/* Drawer header */}
+                                <div className="p-6 pb-4 border-b border-slate-100 bg-gradient-to-br from-primary to-primary-light">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center"><i className="fa-solid fa-heart-pulse text-white text-xs"></i></div>
+                                            <span className="font-outfit font-bold text-white">CarePulse</span>
+                                        </div>
+                                        <button onClick={() => setMobile(false)} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 transition"><i className="fa-solid fa-xmark"></i></button>
+                                    </div>
+                                    <p className="text-white/60 text-xs mt-3">Advanced Healthcare Ecosystem</p>
                                 </div>
-                                <div className="flex-1 overflow-y-auto py-6 space-y-2">
+                                {/* Drawer links */}
+                                <div className="flex-1 p-4 space-y-1">
                                     {links.map(l => (
-                                        <button 
-                                            key={l} 
-                                            onClick={() => go(l)} 
-                                            className="w-full text-left px-4 py-3.5 rounded-xl text-slate-300 font-semibold text-sm hover:bg-white/5 hover:text-white transition-colors"
-                                        >
-                                            {l}
+                                        <button key={l.name} onClick={() => scrollTo(l.name)}
+                                            className={`w-full text-left px-4 py-3.5 font-medium rounded-xl transition-all duration-200 flex items-center gap-3 ${activeLink === l.name ? 'bg-secondary/10 text-secondary font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${activeLink === l.name ? 'bg-secondary/20' : 'bg-slate-100'}`}>
+                                                <i className={`fa-solid ${l.icon} text-xs ${activeLink === l.name ? 'text-secondary' : 'text-slate-400'}`}></i>
+                                            </div>
+                                            {l.name}
+                                            {activeLink === l.name && <div className="ml-auto w-1.5 h-1.5 bg-secondary rounded-full"></div>}
                                         </button>
                                     ))}
                                 </div>
-                                <div className="pt-6 border-t border-white/5 flex flex-col gap-3">
-                                    <a 
-                                        href="login.php" 
-                                        className="w-full text-center border border-white/10 text-white bg-white/5 py-3 rounded-xl font-bold text-sm"
-                                    >
-                                        Portal Login
+                                {/* Drawer footer */}
+                                <div className="p-4 border-t border-slate-100 space-y-3 bg-slate-50/50">
+                                    <a href="login.php" className="flex items-center justify-center gap-2 border border-slate-200 py-3.5 rounded-xl font-semibold text-slate-600 hover:bg-white hover:border-primary/30 transition-all">
+                                        <i className="fa-solid fa-arrow-right-to-bracket text-xs"></i> Portal Login
                                     </a>
-                                    <button 
-                                        onClick={() => go('Contact')} 
-                                        className="w-full bg-gradient-to-r from-primary to-primary-dark text-white py-3.5 rounded-xl font-bold text-sm shadow-xl shadow-primary/20"
-                                    >
-                                        Book Appointment
+                                    <button onClick={() => scrollTo('Contact')} className="w-full bg-gradient-to-r from-primary to-primary-light text-white py-3.5 rounded-xl font-bold shadow-lg shadow-primary/15 flex items-center justify-center gap-2">
+                                        <i className="fa-solid fa-calendar-check text-xs"></i> Book Appointment
                                     </button>
                                 </div>
                             </div>
                         </div>
                     )}
+                </header>
                 </>
             );
         }
 
-        /* ─── Hero Section Component ─── */
+        // ======================================================
+        //  HERO — gradient mesh, decorative orbs, glass cards
+        // ======================================================
         function Hero() {
             return (
-                <section id="home" className="relative min-h-screen flex items-center bg-dark pt-32 pb-24 overflow-hidden">
-                    {/* Glowing Mesh Orbs */}
-                    <div className="absolute top-[-10%] right-[-10%] w-[600px] sm:w-[800px] h-[600px] sm:h-[800px] bg-primary/10 rounded-full blur-[140px] animate-pulse-soft -z-10"></div>
-                    <div className="absolute bottom-[-10%] left-[-10%] w-[500px] sm:w-[700px] h-[500px] sm:h-[700px] bg-secondary/15 rounded-full blur-[140px] animate-pulse-soft -z-10"></div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] border border-white/[0.02] rounded-full -z-10 animate-rotate-slow"></div>
-                    
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
-                        <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-                            
-                            {/* Left Text Block */}
-                            <div className="lg:col-span-7 max-w-2xl text-left">
-                                <FadeIn>
-                                    <div className="inline-flex items-center gap-2.5 bg-primary/10 border border-primary/20 rounded-full px-4.5 py-2 mb-7">
-                                        <span className="relative flex h-2 w-2">
-                                            <span className="pulse-ring absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75 animate-ping"></span>
-                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
-                                        </span>
-                                        <span className="text-[11px] font-bold text-primary-light tracking-[0.1em] uppercase">
-                                            Trusted by 1M+ Patients Worldwide
-                                        </span>
-                                    </div>
-                                </FadeIn>
+                <section id="home" className="hero-mesh overflow-hidden relative">
+                    {/* Decorative orbs */}
+                    <div className="absolute top-16 left-8 w-80 h-80 bg-secondary/[0.05] rounded-full blur-3xl pointer-events-none"></div>
+                    <div className="absolute bottom-8 right-12 w-96 h-96 bg-accent/[0.04] rounded-full blur-3xl pointer-events-none"></div>
+                    <div className="absolute top-32 right-1/4 w-3 h-3 bg-secondary/25 rounded-full animate-float pointer-events-none"></div>
+                    <div className="absolute bottom-40 left-1/3 w-2 h-2 bg-accent/20 rounded-full animate-float-delay pointer-events-none"></div>
+                    <div className="absolute top-1/2 left-16 w-4 h-4 bg-secondary/10 rounded-full animate-float-slow pointer-events-none"></div>
 
-                                <FadeIn delay={100}>
-                                    <h1 className="font-outfit font-black text-4xl sm:text-5xl lg:text-[4rem] text-white leading-[1.05] tracking-tight mb-6">
-                                        Advanced Clinical Care For a{' '}
-                                        <span className="relative inline-block mt-1 sm:mt-0">
-                                            <span className="bg-gradient-to-r from-primary-light via-primary to-secondary bg-clip-text text-transparent animate-glow-shift">
-                                                Better Tomorrow
-                                            </span>
-                                            <svg className="absolute -bottom-3 left-0 w-full opacity-60" viewBox="0 0 300 14" fill="none">
-                                                <path d="M2 10C60 2 140 2 160 8C180 14 260 4 298 10" stroke="#0d9488" strokeWidth="4" strokeLinecap="round" />
-                                            </svg>
-                                        </span>
-                                    </h1>
-                                </FadeIn>
-
-                                <FadeIn delay={200}>
-                                    <p className="text-slate-400 text-base sm:text-lg leading-relaxed mb-9 max-w-xl">
-                                        Experience next-generation medicine combining internationally board-certified specialists, digital workflow automation, and compassionate care designed around your physical well-being.
-                                    </p>
-                                </FadeIn>
-
-                                <FadeIn delay={300}>
-                                    <div className="flex flex-wrap gap-4 mb-12">
-                                        <button 
-                                            onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })} 
-                                            className="group bg-gradient-to-r from-primary to-primary-dark text-white px-7 py-4.5 rounded-2xl font-bold shadow-xl shadow-primary/20 hover:shadow-primary/45 hover:scale-[1.03] active:scale-[0.97] transition-all flex items-center gap-3"
-                                        >
-                                            <i className="fa-regular fa-calendar-check text-sm"></i> Book Appointment
-                                            <i className="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
-                                        </button>
-                                        
-                                        <a 
-                                            href="login.php" 
-                                            className="group bg-white/5 border border-white/10 hover:border-primary/45 text-white px-7 py-4.5 rounded-2xl font-bold hover:bg-white/10 transition-all flex items-center gap-2.5"
-                                        >
-                                            <i className="fa-solid fa-user-lock text-sm text-primary-light"></i> Staff Portal
-                                        </a>
-
-                                        <a 
-                                            href="tel:+1555911" 
-                                            className="group bg-white/5 border border-white/5 hover:border-red-500/20 text-white px-7 py-4.5 rounded-2xl font-bold hover:bg-red-500/10 transition-all flex items-center gap-2.5"
-                                        >
-                                            <span className="w-6 h-6 rounded bg-red-500/25 flex items-center justify-center text-red-500 animate-pulse-soft">
-                                                <i className="fa-solid fa-phone text-xs"></i>
-                                            </span>
-                                            Emergency Hot Line
-                                        </a>
-                                    </div>
-                                </FadeIn>
-
-                                <FadeIn delay={400}>
-                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-3.5">
-                                        {[['JCI Accredited Facility', 'fa-shield-halved'], ['NABH Certified', 'fa-certificate'], ['ISO 9001 Guidelines', 'fa-award']].map(([t, ic], i) => (
-                                            <div key={t} className="flex items-center gap-2">
-                                                <i className={`fa-solid ${ic} text-secondary text-sm`}></i>
-                                                <span className="text-xs font-bold text-slate-400 tracking-wider uppercase">{t}</span>
-                                                {i < 2 && <span className="w-[1px] h-4 bg-white/10 hidden sm:block"></span>}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </FadeIn>
-                            </div>
-
-                            {/* Right Image Canvas & Floating HUDs */}
-                            <div className="lg:col-span-5 relative hidden lg:block">
-                                <FadeIn delay={200} dir="right">
-                                    <div className="relative max-w-sm mx-auto">
-                                        {/* Outer Glow Backdrops */}
-                                        <div className="absolute -inset-8 bg-gradient-to-br from-primary/15 to-secondary/15 rounded-[3rem] blur-3xl -z-10 animate-pulse-soft"></div>
-                                        
-                                        {/* Masked Hero Doctor Image */}
-                                        <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl shadow-slate-950/50">
-                                            <img src={IMG.hero} alt="Clinical specialist at CarePulse" className="w-full aspect-[4/5] object-cover hover:scale-[1.02] transition-transform duration-700" loading="eager" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-dark via-transparent to-transparent opacity-60"></div>
-                                        </div>
-
-                                        {/* HUD A: Operational Stats */}
-                                        <div className="absolute -left-12 top-20 glass-panel-dark rounded-2xl p-4.5 shadow-2xl shadow-dark/50 animate-float-1 w-52">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary border border-secondary/20">
-                                                    <i className="fa-solid fa-chart-pie text-sm"></i>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Queue status</p>
-                                                    <p className="text-sm font-black text-white">Stable (0-5m wait)</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* HUD B: Specialist Vitals */}
-                                        <div className="absolute -right-12 top-[45%] glass-panel-dark rounded-2xl p-4.5 shadow-2xl shadow-dark/50 animate-float-2 w-52">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary-light border border-primary/20">
-                                                    <i className="fa-solid fa-user-doctor text-sm"></i>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Staff</p>
-                                                    <p className="text-sm font-black text-white">500+ Specialists</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* HUD C: Realtime Patient Feeds */}
-                                        <div className="absolute -left-8 bottom-12 glass-panel-dark rounded-2xl p-4.5 shadow-2xl shadow-dark/50 animate-float-3 w-52">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400 border border-rose-500/20">
-                                                    <i className="fa-solid fa-heart-circle-check text-sm animate-pulse-soft"></i>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Clinical Vitals</p>
-                                                    <p className="text-sm font-black text-white">100% Online HUD</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </FadeIn>
-                            </div>
-
-                        </div>
-                    </div>
-                </section>
-            );
-        }
-
-        /* ─── Stats Counter Component ─── */
-        function Stats() {
-            const items = [
-                { num: 25, suf: '+', label: 'Years Experience', icon: 'fa-award', c: 'text-primary-light' },
-                { num: 500, suf: '+', label: 'Expert Doctors', icon: 'fa-user-doctor', c: 'text-secondary-light' },
-                { num: 1, suf: 'M+', label: 'Happy Patients', icon: 'fa-face-smile', c: 'text-amber-400' },
-                { num: 50, suf: 'K+', label: 'Surgeries Done', icon: 'fa-hand-holding-medical', c: 'text-rose-400' },
-                { num: 100, suf: '%', label: 'Operational Uptime', icon: 'fa-microchip', c: 'text-emerald-400' },
-            ];
-            return (
-                <section className="relative z-20 -mt-10 lg:-mt-12">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="glass-panel-dark rounded-[2rem] p-1.5 shadow-2xl shadow-dark/30">
-                            <div className="bg-dark/65 rounded-[1.8rem] p-8 lg:p-10 border border-white/5">
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-4">
-                                    {items.map((s, i) => <Stat key={i} {...s} delay={i * 100} />)}
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-10 items-center py-20 lg:py-28 relative">
+                        <div className="lg:col-span-6 space-y-7">
+                            <FadeIn>
+                                <span className="inline-flex items-center gap-2 bg-secondary/10 text-secondary text-xs font-bold px-4 py-2 rounded-full tracking-wide">
+                                    <span className="w-2 h-2 bg-secondary rounded-full animate-pulse"></span>
+                                    Next-Gen Clinical Intelligence
+                                </span>
+                            </FadeIn>
+                            <FadeIn delay={100}>
+                                <h1 className="font-outfit font-black text-4xl sm:text-5xl lg:text-[3.5rem] text-slate-900 leading-[1.08] tracking-tight">
+                                    Advanced <span className="gradient-text">health intelligence</span> for tomorrow
+                                </h1>
+                            </FadeIn>
+                            <FadeIn delay={200}>
+                                <p className="text-slate-500 text-base lg:text-lg max-w-md leading-relaxed">Board-certified specialists, AI-assisted diagnostics, and seamless patient journey — all in one ecosystem.</p>
+                            </FadeIn>
+                            <FadeIn delay={300}>
+                                <div className="flex flex-wrap gap-4 items-center">
+                                    <button onClick={() => document.getElementById('contact').scrollIntoView({behavior:'smooth'})} className="group bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded-full font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 flex items-center gap-2">
+                                        Book Diagnostic Slot <i className="fa-solid fa-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i>
+                                    </button>
+                                    <a href="login.php" className="group text-slate-500 font-semibold flex items-center gap-2 hover:text-primary transition">Staff Access <i className="fa-solid fa-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i></a>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            );
-        }
-
-        function Stat({ num, suf, label, icon, delay, c }) {
-            const [ref, count] = useCounter(num);
-            return (
-                <FadeIn ref={ref} delay={delay} className="text-center group">
-                    <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-white/5 border border-white/5 group-hover:border-primary/20 flex items-center justify-center transition-all duration-300">
-                        <i className={`fa-solid ${icon} ${c} text-lg`}></i>
-                    </div>
-                    <p className="font-outfit font-black text-3xl sm:text-4xl text-white tracking-tight tabular-nums">
-                        {count}{suf}
-                    </p>
-                    <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mt-1.5">
-                        {label}
-                    </p>
-                </FadeIn>
-            );
-        }
-
-        /* ─── Wave Section Divider ─── */
-        function Wave({ color = '#f4f7fc', flip = false }) {
-            return (
-                <div className={`w-full overflow-hidden leading-[0] ${flip ? 'rotate-180' : ''}`} style={{ marginTop: '-1.5px', marginBottom: '-1.5px' }}>
-                    <svg viewBox="0 0 1440 80" preserveAspectRatio="none" className="w-full h-[35px] sm:h-[55px] lg:h-[75px]">
-                        <path d="M0,50 C240,10 480,80 720,40 C960,0 1200,70 1440,30 L1440,80 L0,80 Z" fill={color} />
-                    </svg>
-                </div>
-            );
-        }
-
-        /* ─── About Us Component ─── */
-        function About() {
-            return (
-                <section id="about" className="pt-10 pb-20 bg-[#f4f7fc] relative overflow-hidden">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid lg:grid-cols-12 gap-12 lg:gap-20 items-center">
-                            
-                            {/* Left Overlapping Images Canvas */}
-                            <div className="lg:col-span-5 relative">
-                                <FadeIn dir="left">
-                                    <div className="relative max-w-md mx-auto sm:mx-0">
-                                        <div className="absolute -top-5 -left-5 w-24 h-24 rounded-2xl border-2 border-secondary/20 -z-10 animate-float-1"></div>
-                                        <div className="absolute -bottom-5 -right-5 w-20 h-20 rounded-full bg-secondary/5 -z-10 animate-float-2"></div>
-                                        
-                                        {/* Main Large Image */}
-                                        <img src={IMG.about} alt="CarePulse Clinical Corridor" className="rounded-3xl shadow-2xl shadow-slate-900/10 w-full object-cover aspect-[4/3] relative z-[1] border border-white" loading="lazy" />
-                                        
-                                        {/* Floating Badge overlay */}
-                                        <div className="absolute -bottom-8 -right-6 sm:-right-8 bg-gradient-to-br from-dark to-slate-900 border border-white/10 rounded-2xl shadow-2xl p-6 z-[2] animate-float-3 text-left w-56">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20 flex-shrink-0">
-                                                    <i className="fa-solid fa-trophy text-white text-lg"></i>
-                                                </div>
-                                                <div>
-                                                    <p className="font-outfit font-black text-2xl text-white">25+</p>
-                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Years of Trust</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </FadeIn>
-                            </div>
-
-                            {/* Right Content */}
-                            <div className="lg:col-span-7 text-left">
-                                <FadeIn>
-                                    <span className="text-primary font-bold text-xs tracking-[0.25em] uppercase">
-                                        About CarePulse
-                                    </span>
-                                    <h2 className="font-outfit font-black text-3xl sm:text-4xl text-dark mt-2.5 mb-6 leading-tight">
-                                        A Legacy of Clinical Excellence & Innovation
-                                    </h2>
-                                    <p className="text-slate-500 leading-relaxed mb-9 text-base">
-                                        Founded over two decades ago, CarePulse has evolved from a local health clinic into a comprehensive, multi-specialty clinical hub. We have earned the trust of over a million patients by integrating board-certified expertise with advanced diagnostics and digitized patient tracking.
-                                    </p>
-                                </FadeIn>
-
-                                {/* Mission and Vision Cards */}
-                                <div className="grid sm:grid-cols-2 gap-5 mb-10">
+                            </FadeIn>
+                            <FadeIn delay={400}>
+                                <div className="flex flex-wrap items-center gap-5 pt-2">
                                     {[
-                                        { t: 'Our Mission', d: 'Deliver accessible, premium-quality healthcare that improves lives through clinical innovation, cutting-edge tech, and genuine patient compassion.', ic: 'fa-bullseye', g: 'bg-primary/5 border-primary/20 text-primary' },
-                                        { t: 'Our Vision', d: 'Be the most reliable healthcare ecosystem globally, leading in precision diagnostics, telemedicine access, and patient satisfaction.', ic: 'fa-eye', g: 'bg-secondary/5 border-secondary/20 text-secondary' }
-                                    ].map((m, i) => (
-                                        <FadeIn key={i} delay={i * 150}>
-                                            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col items-start text-left border-glow-hover">
-                                                <div className={`w-11 h-11 rounded-xl ${m.g} border flex items-center justify-center mb-4 shadow-sm`}>
-                                                    <i className={`fa-solid ${m.ic} text-base`}></i>
-                                                </div>
-                                                <h3 className="font-outfit font-bold text-dark text-base mb-2">{m.t}</h3>
-                                                <p className="text-slate-500 text-xs leading-relaxed">{m.d}</p>
-                                            </div>
-                                        </FadeIn>
+                                        { icon: 'fa-circle-check', label: '98% satisfaction' },
+                                        { icon: 'fa-clock', label: '24/7 emergency' },
+                                        { icon: 'fa-shield-halved', label: 'HIPAA certified' },
+                                    ].map((b, i) => (
+                                        <div key={i} className="flex items-center gap-2 text-sm text-slate-400">
+                                            <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center"><i className={`fa-solid ${b.icon} text-secondary text-xs`}></i></div>
+                                            <span>{b.label}</span>
+                                        </div>
                                     ))}
                                 </div>
+                            </FadeIn>
+                        </div>
 
-                                <FadeIn delay={300}>
-                                    <div className="flex flex-wrap gap-2.5">
-                                        {['Joint Commission Accredited', 'Modern Medical Equipments', 'Specialist Doctor Registry', 'Affordable Clinical Care', '24/7 Hotline Support'].map(t => (
-                                            <span key={t} className="inline-flex items-center gap-1.5 bg-white border border-slate-200/80 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-500 hover:border-primary/25 hover:text-primary transition-colors cursor-default">
-                                                <i className="fa-solid fa-check text-secondary text-[9px] w-3 h-3 rounded-full bg-secondary/10 flex items-center justify-center"></i>{t}
-                                            </span>
+                        <div className="lg:col-span-6 relative">
+                            <FadeIn dir="right" className="relative">
+                                <div className="relative">
+                                    <div className="absolute -inset-4 bg-gradient-to-br from-secondary/15 to-accent/10 rounded-[2.5rem] blur-2xl"></div>
+                                    <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/40">
+                                        <img src={IMG.hero} alt="Modern healthcare facility" className="w-full h-full object-cover max-h-[520px]" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent"></div>
+                                    </div>
+                                </div>
+                                {/* Floating glass card — left */}
+                                <div className="absolute -bottom-6 -left-4 sm:-left-6 glass rounded-2xl shadow-xl p-4 flex items-center gap-3 animate-float z-10">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-secondary-dark flex items-center justify-center shadow-md shadow-secondary/20">
+                                        <i className="fa-solid fa-user-doctor text-white"></i>
+                                    </div>
+                                    <div>
+                                        <span className="text-primary font-black text-xl">540+</span>
+                                        <p className="text-[11px] text-slate-500 font-medium">Specialists</p>
+                                    </div>
+                                </div>
+                                {/* Floating glass card — right */}
+                                <div className="absolute -top-3 -right-2 sm:-right-4 glass rounded-2xl shadow-xl p-3.5 animate-float-delay z-10">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                                        <span className="text-xs font-bold text-slate-700">Live Monitoring</span>
+                                    </div>
+                                    <div className="flex items-end gap-[3px]">
+                                        {[38,62,48,78,52,68,88,58,72,44,82].map((h,i) => (
+                                            <div key={i} className="w-[5px] rounded-full bg-gradient-to-t from-secondary to-secondary-light" style={{height: h/4.5+'px', opacity: 0.5 + (h/176)}}></div>
                                         ))}
                                     </div>
-                                </FadeIn>
-                            </div>
-
+                                </div>
+                            </FadeIn>
                         </div>
                     </div>
                 </section>
             );
         }
 
-        /* ─── Departments Section Component ─── */
-        function Departments() {
-            const gridSpans = [
-                'lg:col-span-4 md:col-span-6',
-                'lg:col-span-4 md:col-span-6',
-                'lg:col-span-4 md:col-span-6',
-                'lg:col-span-6 md:col-span-6',
-                'lg:col-span-6 md:col-span-6',
-                'lg:col-span-4 md:col-span-6',
-                'lg:col-span-4 md:col-span-6',
-                'lg:col-span-4 md:col-span-12'
+        // ======================================================
+        //  STATS — icons, gradient bg, animated counters
+        // ======================================================
+        function Stats() {
+            const items = [
+                { num: 28, suffix: '+', label: 'Years of Excellence', icon: 'fa-award', color: 'from-secondary to-secondary-dark' },
+                { num: 540, suffix: '+', label: 'Specialists', icon: 'fa-user-doctor', color: 'from-accent to-accent-dark' },
+                { num: 72, suffix: '+', label: 'Specialties', icon: 'fa-stethoscope', color: 'from-primary-light to-primary' },
+                { num: 100, suffix: '%', label: 'Digital Records', icon: 'fa-database', color: 'from-secondary-light to-secondary' },
             ];
-            
             return (
-                <section id="departments" className="py-20 bg-white">
+                <section className="bg-gradient-to-r from-slate-50 via-white to-slate-50 border-y border-slate-100">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-4 gap-8 py-16">
+                        {items.map((it, i) => {
+                            const [ref, count] = useCounter(it.num);
+                            return (
+                                <FadeIn key={i} delay={i * 80}>
+                                    <div ref={ref} className="text-center group">
+                                        <div className={`w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${it.color} flex items-center justify-center shadow-lg shadow-secondary/10 group-hover:scale-110 transition-transform duration-300`}>
+                                            <i className={`fa-solid ${it.icon} text-white text-lg`}></i>
+                                        </div>
+                                        <div className="font-outfit font-black text-4xl text-primary stat-number">{count}{it.suffix}</div>
+                                        <p className="text-slate-500 text-sm font-medium mt-1">{it.label}</p>
+                                    </div>
+                                </FadeIn>
+                            );
+                        })}
+                    </div>
+                </section>
+            );
+        }
+
+        // ======================================================
+        //  ABOUT — overlapping images, floating badge
+        // ======================================================
+        function About() {
+            return (
+                <section id="about" className="section-pad bg-warm relative overflow-hidden">
+                    <div className="absolute top-20 right-0 w-64 h-64 dot-pattern rounded-full pointer-events-none"></div>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-14 items-center">
+                        <div className="lg:col-span-6 relative">
+                            <FadeIn dir="left">
+                                <div className="relative">
+                                    {/* Main image */}
+                                    <div className="rounded-3xl overflow-hidden shadow-xl border border-slate-200 relative z-10">
+                                        <img src={IMG.about1} alt="Doctor consultation" className="w-full h-[380px] object-cover" />
+                                    </div>
+                                    {/* Overlapping image */}
+                                    <div className="absolute -bottom-8 -right-6 w-[55%] rounded-2xl overflow-hidden shadow-2xl border-4 border-white z-20 hidden sm:block">
+                                        <img src={IMG.about2} alt="Medical technology" className="w-full h-[200px] object-cover" />
+                                    </div>
+                                    {/* Floating badge */}
+                                    <div className="absolute -top-4 -left-4 glass rounded-2xl shadow-lg p-4 z-20 animate-float">
+                                        <div className="text-center">
+                                            <span className="font-outfit font-black text-3xl gradient-text">28+</span>
+                                            <p className="text-[11px] text-slate-500 font-semibold">Years of<br/>Excellence</p>
+                                        </div>
+                                    </div>
+                                    {/* Decorative dot pattern */}
+                                    <div className="absolute -bottom-4 -left-4 w-20 h-20 dot-pattern rounded-xl -z-10"></div>
+                                </div>
+                            </FadeIn>
+                        </div>
+                        <div className="lg:col-span-6 space-y-6">
+                            <FadeIn>
+                                <span className="inline-flex items-center gap-2 text-secondary font-bold text-xs tracking-[0.2em] uppercase">
+                                    <span className="w-8 h-[2px] bg-secondary rounded-full"></span> Our Legacy
+                                </span>
+                                <h2 className="font-outfit font-black text-3xl sm:text-4xl text-slate-900 mt-3">Built on clinical integrity & innovation</h2>
+                                <p className="text-slate-500 text-[15px] leading-relaxed mt-4">For 28 years, CarePulse has combined certified expertise with advanced diagnostics. We treat every patient with precision and compassion, pushing the boundaries of modern healthcare.</p>
+                            </FadeIn>
+                            <FadeIn delay={100}>
+                                <div className="space-y-3 pt-2">
+                                    {['Board-certified specialists in 72+ specialties','AI-powered diagnostic accuracy up to 99.2%','Fully integrated digital health records','Internationally accredited facilities'].map((item, i) => (
+                                        <div key={i} className="flex items-start gap-3">
+                                            <div className="w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                <i className="fa-solid fa-check text-secondary text-[10px]"></i>
+                                            </div>
+                                            <span className="text-slate-600 text-sm">{item}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </FadeIn>
+                            <FadeIn delay={200}>
+                                <div className="grid sm:grid-cols-2 gap-4 pt-4">
+                                    <div className="bg-white p-5 rounded-2xl border border-slate-200 card-hover shadow-sm">
+                                        <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center"><i className="fa-solid fa-bullseye text-secondary"></i></div>
+                                        <h4 className="font-bold text-slate-800 mt-3">Mission</h4>
+                                        <p className="text-xs text-slate-500 mt-1">Accessible, innovative care for every individual regardless of circumstance.</p>
+                                    </div>
+                                    <div className="bg-white p-5 rounded-2xl border border-slate-200 card-hover shadow-sm">
+                                        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center"><i className="fa-solid fa-eye text-accent"></i></div>
+                                        <h4 className="font-bold text-slate-800 mt-3">Vision</h4>
+                                        <p className="text-xs text-slate-500 mt-1">Global leader in telehealth, AI diagnostics, and patient-centered care.</p>
+                                    </div>
+                                </div>
+                            </FadeIn>
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        // ======================================================
+        //  DEPARTMENTS — glass overlay, gradient accent
+        // ======================================================
+        function Departments() {
+            const depts = [
+                { name: 'Cardiology', icon: 'fa-heart-pulse', img: IMG.dept1, desc: 'Advanced cardiac diagnostics, catheterization and interventional procedures.', color: 'bg-rose-500/10 text-rose-500' },
+                { name: 'Neurology', icon: 'fa-brain', img: IMG.dept2, desc: 'Comprehensive brain, spine & nervous system care with cutting-edge tech.', color: 'bg-purple-500/10 text-purple-500' },
+                { name: 'Orthopedics', icon: 'fa-bone', img: IMG.dept3, desc: 'Robotic joint replacements, sports medicine & fracture management.', color: 'bg-blue-500/10 text-blue-500' },
+                { name: 'Pediatrics', icon: 'fa-baby', img: IMG.dept4, desc: 'Holistic child health from neonate to adolescent with family care.', color: 'bg-emerald-500/10 text-emerald-500' },
+                { name: 'Gynecology', icon: 'fa-venus', img: IMG.dept5, desc: "Women's health, maternity services & reproductive medicine.", color: 'bg-pink-500/10 text-pink-500' },
+                { name: 'Emergency', icon: 'fa-truck-medical', img: IMG.dept6, desc: '24/7 level-1 trauma center with rapid-response critical care teams.', color: 'bg-amber-500/10 text-amber-500' },
+            ];
+            return (
+                <section id="departments" className="section-pad bg-white">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <FadeIn className="text-center max-w-2xl mx-auto mb-16">
-                            <span className="text-primary font-bold text-xs tracking-[0.25em] uppercase">
-                                Areas of Expertise
+                        <FadeIn className="text-center max-w-2xl mx-auto mb-14">
+                            <span className="inline-flex items-center gap-2 text-secondary font-bold text-xs tracking-[0.2em] uppercase">
+                                <span className="w-8 h-[2px] bg-secondary rounded-full"></span> Specialties <span className="w-8 h-[2px] bg-secondary rounded-full"></span>
                             </span>
-                            <h2 className="font-outfit font-black text-3xl sm:text-4xl text-dark mt-2.5 mb-4 leading-tight">
-                                Medical Departments
-                            </h2>
-                            <p className="text-slate-500">
-                                Comprehensive specialized clinical setups staffed by highly experienced medical practitioners dedicated to optimal outcomes.
-                            </p>
+                            <h2 className="font-outfit font-black text-3xl sm:text-4xl text-slate-900 mt-3">Medical departments</h2>
+                            <p className="text-slate-500 text-sm mt-3">Comprehensive care across every major medical discipline with state-of-the-art facilities.</p>
+                        </FadeIn>
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {depts.map((d, i) => (
+                                <FadeIn key={i} delay={i * 70}>
+                                    <div className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm dept-card card-hover group">
+                                        <div className="h-52 overflow-hidden relative">
+                                            <img src={d.img} alt={d.name} className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                        </div>
+                                        <div className="p-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-10 h-10 rounded-xl ${d.color} flex items-center justify-center`}>
+                                                    <i className={`fa-solid ${d.icon} text-sm`}></i>
+                                                </div>
+                                                <h4 className="font-outfit font-bold text-slate-800 text-lg">{d.name}</h4>
+                                            </div>
+                                            <p className="text-slate-500 text-sm mt-3 leading-relaxed">{d.desc}</p>
+                                            <button className="mt-4 text-secondary text-sm font-semibold flex items-center gap-1.5 group/link">
+                                                Learn more <i className="fa-solid fa-arrow-right text-[10px] group-hover/link:translate-x-1 transition-transform"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </FadeIn>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        // ======================================================
+        //  DOCTORS — full card with hover overlay
+        // ======================================================
+        function Doctors() {
+            const docs = [
+                { name: 'Dr. Sarah Mitchell', spec: 'Cardiologist', exp: '18 yrs', img: IMG.doc1, bio: 'Specializes in interventional cardiology and heart failure management with over 3000 successful procedures.' },
+                { name: 'Dr. James Rodriguez', spec: 'Neurologist', exp: '15 yrs', img: IMG.doc2, bio: 'Expert in stroke rehabilitation, neurodegenerative disorders and advanced brain mapping.' },
+                { name: 'Dr. Emily Chen', spec: 'Orthopedic Surgeon', exp: '12 yrs', img: IMG.doc3, bio: 'Minimally invasive joint reconstruction and sports injury specialist with robotic surgery expertise.' },
+                { name: 'Dr. Michael Patel', spec: 'Pediatrician', exp: '20 yrs', img: IMG.doc4, bio: 'Dedicated to child development, adolescent health and neonatal intensive care.' },
+            ];
+            const [active, setActive] = useState(0);
+
+            return (
+                <section id="doctors" className="section-pad bg-warm relative overflow-hidden">
+                    <div className="absolute bottom-0 left-0 w-72 h-72 dot-pattern rounded-full pointer-events-none opacity-50"></div>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <FadeIn className="text-center max-w-2xl mx-auto mb-14">
+                            <span className="inline-flex items-center gap-2 text-secondary font-bold text-xs tracking-[0.2em] uppercase">
+                                <span className="w-8 h-[2px] bg-secondary rounded-full"></span> Experts <span className="w-8 h-[2px] bg-secondary rounded-full"></span>
+                            </span>
+                            <h2 className="font-outfit font-black text-3xl sm:text-4xl text-slate-900 mt-3">Meet our specialists</h2>
+                            <p className="text-slate-500 text-sm mt-3">Our physicians bring decades of combined expertise across all major medical disciplines.</p>
                         </FadeIn>
 
-                        <div className="grid grid-cols-12 gap-5">
-                            {depts.map((d, i) => (
-                                <FadeIn key={d.name} delay={i * 80} className={gridSpans[i]}>
-                                    <div className={`group rounded-[2rem] p-8 h-full transition-all duration-300 border-glow-hover flex flex-col justify-between text-left ${i === 7 ? 'bg-gradient-to-br from-primary to-secondary text-white border-0 shadow-lg shadow-primary/10' : 'bg-[#f4f7fc]/50 hover:bg-white border border-slate-200/60 shadow-sm'}`}>
-                                        <div>
-                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-sm border ${i === 7 ? 'bg-white/15 border-white/10 text-white' : `${d.c} border-current/10`}`}>
-                                                <i className={`fa-solid ${d.icon} text-xl`}></i>
-                                            </div>
-                                            <h3 className={`font-outfit font-black text-xl mb-3 ${i === 7 ? 'text-white' : 'text-dark'}`}>
-                                                {d.name}
-                                            </h3>
-                                            <p className={`text-xs leading-relaxed mb-6 ${i === 7 ? 'text-white/80' : 'text-slate-500'}`}>
-                                                {d.desc}
-                                            </p>
+                        <div className="grid lg:grid-cols-12 gap-8 items-start">
+                            {/* Active doctor detail card */}
+                            <FadeIn className="lg:col-span-5">
+                                <div className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-lg card-hover">
+                                    <div className="h-64 overflow-hidden relative">
+                                        <img src={docs[active].img} alt={docs[active].name} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent"></div>
+                                        <div className="absolute bottom-4 left-6 text-white">
+                                            <p className="text-secondary-light font-semibold text-sm">{docs[active].spec}</p>
+                                            <h3 className="font-outfit font-bold text-2xl">{docs[active].name}</h3>
                                         </div>
-                                        <button 
-                                            onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })}
-                                            className={`inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors ${i === 7 ? 'text-white hover:text-white/80' : 'text-primary hover:text-primary-dark'}`}
-                                        >
-                                            Consult Department <i className="fa-solid fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1.5"></i>
+                                    </div>
+                                    <div className="p-6">
+                                        <div className="flex items-center gap-4 mb-4">
+                                            <div className="flex items-center gap-2 text-sm bg-secondary/10 text-secondary px-3 py-1.5 rounded-full font-semibold">
+                                                <i className="fa-solid fa-clock text-xs"></i> {docs[active].exp}
+                                            </div>
+                                            <div className="flex text-amber-400 text-sm gap-0.5">
+                                                {[1,2,3,4,5].map(s => <i key={s} className="fa-solid fa-star"></i>)}
+                                            </div>
+                                        </div>
+                                        <p className="text-slate-600 text-sm italic leading-relaxed">"{docs[active].bio}"</p>
+                                        <button onClick={() => document.getElementById('contact').scrollIntoView({behavior:'smooth'})} className="mt-6 w-full bg-primary text-white py-3.5 rounded-xl font-bold hover:bg-primary-dark transition-all shadow-md shadow-primary/10 flex items-center justify-center gap-2">
+                                            <i className="fa-solid fa-calendar-check text-sm"></i> Book Consultation
                                         </button>
                                     </div>
-                                </FadeIn>
-                            ))}
+                                </div>
+                            </FadeIn>
+
+                            {/* Doctor selector grid */}
+                            <div className="lg:col-span-7 grid sm:grid-cols-2 gap-4">
+                                {docs.map((d, i) => (
+                                    <FadeIn key={i} delay={i * 60}>
+                                        <button onClick={() => setActive(i)} className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 card-hover text-left ${active === i ? 'bg-primary/[0.04] border-secondary/40 shadow-lg ring-1 ring-secondary/20' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+                                            <img src={d.img} alt={d.name} className={`w-16 h-16 rounded-xl object-cover transition-all duration-300 ${active === i ? 'ring-2 ring-secondary ring-offset-2' : ''}`} />
+                                            <div>
+                                                <h4 className="font-bold text-slate-800 text-sm">{d.name}</h4>
+                                                <p className="text-slate-500 text-xs mt-0.5">{d.spec}</p>
+                                                <p className="text-secondary text-xs font-semibold mt-1">{d.exp} experience</p>
+                                            </div>
+                                            {active === i && <div className="ml-auto w-2 h-2 bg-secondary rounded-full animate-pulse"></div>}
+                                        </button>
+                                    </FadeIn>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </section>
             );
         }
 
-        /* ─── Doctors Component (Dark Editorial Showcase) ─── */
-        function Doctors() {
-            return (
-                <section id="doctors" className="py-24 bg-dark relative overflow-hidden">
-                    {/* Glowing Mesh Orbs */}
-                    <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-primary/5 rounded-full blur-[110px]"></div>
-                    <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-secondary/5 rounded-full blur-[110px]"></div>
-                    
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                        <FadeIn className="text-center max-w-2xl mx-auto mb-16">
-                            <span className="text-secondary font-bold text-xs tracking-[0.25em] uppercase">
-                                Expert Practitioners
-                            </span>
-                            <h2 className="font-outfit font-black text-3xl sm:text-4xl text-white mt-2.5 mb-4 leading-tight">
-                                Meet Our Doctors
-                            </h2>
-                            <p className="text-slate-400">
-                                Leading clinical professionals with years of research, board-certifications, and a unified patient-centered commitment.
-                            </p>
-                        </FadeIn>
-
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {docs.map((d, i) => (
-                                <FadeIn key={d.name} delay={i * 120}>
-                                    <div className="group bg-dark-light rounded-[2rem] overflow-hidden border border-white/5 hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 flex flex-col justify-between">
-                                        <div className="relative aspect-[3/4] overflow-hidden">
-                                            <img src={d.img} alt={d.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-dark via-transparent to-transparent opacity-80"></div>
-                                            
-                                            {/* Custom Rating Badge */}
-                                            <div className="absolute top-4 right-4 glass-panel-dark rounded-xl px-3 py-1.5 flex items-center gap-1.5">
-                                                <i className="fa-solid fa-star text-amber-400 text-xs"></i>
-                                                <span className="text-white text-xs font-bold">{d.rating}</span>
-                                            </div>
-
-                                            {/* Editorial Slide-Up Actions Panel */}
-                                            <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-400 backdrop-blur-md flex flex-col items-center justify-center p-6">
-                                                <button 
-                                                    onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })} 
-                                                    className="bg-white text-primary px-6 py-3 rounded-xl font-bold text-xs hover:bg-slate-50 transition-colors shadow-lg mb-4 hover:scale-[1.02] active:scale-[0.98] transition-transform"
-                                                >
-                                                    Book Consultation
-                                                </button>
-                                                <div className="flex gap-2">
-                                                    {['fa-brands fa-linkedin-in', 'fa-solid fa-envelope', 'fa-solid fa-phone'].map((ic, idx) => (
-                                                        <button 
-                                                            key={idx} 
-                                                            className="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
-                                                            aria-label="Doctor Contact Link"
-                                                        >
-                                                            <i className={`${ic} text-xs`}></i>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="p-6 text-left">
-                                            <h3 className="font-outfit font-black text-white text-base">
-                                                {d.name}
-                                            </h3>
-                                            <p className="text-primary-light text-xs font-bold uppercase tracking-wider mt-1">
-                                                {d.spec}
-                                            </p>
-                                            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5 text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
-                                                <i className="fa-solid fa-graduation-cap text-secondary"></i>
-                                                {d.exp} Practice Exp.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </FadeIn>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            );
-        }
-
-        /* ─── Services Component (Bento Grid layout) ─── */
+        // ======================================================
+        //  SERVICES — enhanced bento grid
+        // ======================================================
         function Services() {
-            const getSpan = (s) => s.full ? 'lg:col-span-12' : s.big ? 'lg:col-span-8 md:col-span-6' : 'lg:col-span-4 md:col-span-6';
+            const services = [
+                { title: 'Emergency Care', icon: 'fa-kit-medical', img: IMG.emerg, big: true, desc: '24/7 Level-1 trauma with GPS-enabled fleet' },
+                { title: 'ICU Monitoring', icon: 'fa-bed-pulse', desc: 'Real-time vital tracking with 1:1 critical care nursing', color: 'from-rose-500/10 to-rose-500/5' },
+                { title: 'Diagnostic Lab', icon: 'fa-flask-vial', desc: '2000+ tests with AI-automated reporting & alerts', color: 'from-violet-500/10 to-violet-500/5' },
+                { title: 'Radiology (MRI/CT)', icon: 'fa-x-ray', img: IMG.scan, big: true, desc: '3T MRI & 256-slice CT with AI-assisted imaging' },
+                { title: 'Robotic Surgery', icon: 'fa-syringe', img: IMG.surgery, big: true, desc: 'Da Vinci robotic-assisted precision procedures' },
+                { title: 'Telehealth', icon: 'fa-laptop-medical', desc: 'Secure HD video consults from anywhere', color: 'from-emerald-500/10 to-emerald-500/5' },
+                { title: 'Pharmacy', icon: 'fa-prescription-bottle-medical', desc: 'Digital prescription & same-day delivery', color: 'from-amber-500/10 to-amber-500/5' },
+                { title: 'Ambulance', icon: 'fa-truck-medical', desc: 'GPS fleet with live patient monitoring feed', color: 'from-blue-500/10 to-blue-500/5' },
+            ];
             return (
-                <section id="services" className="py-20 bg-[#f4f7fc]">
+                <section id="services" className="section-pad bg-white">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <FadeIn className="text-center max-w-2xl mx-auto mb-16">
-                            <span className="text-primary font-bold text-xs tracking-[0.25em] uppercase">
-                                Care Capabilities
+                        <FadeIn className="text-center max-w-2xl mx-auto mb-14">
+                            <span className="inline-flex items-center gap-2 text-secondary font-bold text-xs tracking-[0.2em] uppercase">
+                                <span className="w-8 h-[2px] bg-secondary rounded-full"></span> Capabilities <span className="w-8 h-[2px] bg-secondary rounded-full"></span>
                             </span>
-                            <h2 className="font-outfit font-black text-3xl sm:text-4xl text-dark mt-2.5 mb-4 leading-tight">
-                                Our Services
-                            </h2>
-                            <p className="text-slate-500">
-                                Integrated medical services ranging from diagnostics to specialized clinical care, running on high-definition records.
-                            </p>
+                            <h2 className="font-outfit font-black text-3xl sm:text-4xl text-slate-900 mt-3">Integrated care services</h2>
+                            <p className="text-slate-500 text-sm mt-3">End-to-end healthcare capabilities powered by advanced technology and human expertise.</p>
                         </FadeIn>
-
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-                            {svcs.map((s, i) => {
-                                const isImg = !!s.img;
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[200px]">
+                            {services.map((s, i) => {
+                                const span = s.big ? 'col-span-2 row-span-2' : 'col-span-1 row-span-1';
                                 return (
-                                    <FadeIn key={s.title} delay={i * 60} className={getSpan(s)}>
-                                        <div className={`group rounded-[2rem] overflow-hidden h-full relative transition-all duration-300 ${isImg ? 'min-h-[280px] shadow-sm' : 'p-8 bg-white border border-slate-200/50 shadow-sm'} ${s.full ? 'bg-gradient-to-br from-primary via-primary-dark to-secondary p-8 lg:p-12' : 'hover:shadow-xl'}`}>
-                                            {isImg ? (
-                                                <>
-                                                    <img src={s.img} alt={s.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="lazy" />
-                                                    <div className="absolute inset-0 bg-gradient-to-r from-dark/90 via-dark/60 to-transparent"></div>
-                                                    <div className="relative z-10 flex flex-col justify-end h-full p-6 sm:p-8 text-left">
-                                                        <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center mb-4 backdrop-blur-md">
-                                                            <i className={`fa-solid ${s.icon} text-white text-lg`}></i>
-                                                        </div>
-                                                        <h3 className="font-outfit font-black text-white text-xl mb-2">{s.title}</h3>
-                                                        <p className="text-white/80 text-xs leading-relaxed max-w-md">{s.desc}</p>
+                                    <FadeIn key={i} delay={i * 50} className={`${span} rounded-2xl overflow-hidden border border-slate-200 relative group card-hover ${s.img ? 'bg-slate-900' : 'bg-gradient-to-br ' + (s.color || 'from-slate-50 to-white') + ' shadow-sm'}`}>
+                                        {s.img ? (
+                                            <>
+                                                <img src={s.img} alt={s.title} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                                                <div className="absolute bottom-5 left-5 right-5 text-white z-10">
+                                                    <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-3">
+                                                        <i className={`fa-solid ${s.icon} text-lg`}></i>
                                                     </div>
-                                                </>
-                                            ) : s.full ? (
-                                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-left">
-                                                    <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                                                        <div className="w-16 h-16 rounded-2xl bg-white/15 border border-white/10 flex items-center justify-center flex-shrink-0 backdrop-blur-md text-white">
-                                                            <i className={`fa-solid ${s.icon} text-2xl`}></i>
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="font-outfit font-black text-white text-2xl mb-2">{s.title}</h3>
-                                                            <p className="text-white/80 text-xs leading-relaxed max-w-2xl">{s.desc}</p>
-                                                        </div>
-                                                    </div>
-                                                    <button 
-                                                        onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })}
-                                                        className="bg-white text-primary hover:bg-slate-50 px-6 py-3.5 rounded-xl text-xs font-bold shadow-lg flex-shrink-0 hover:scale-[1.02] transition-transform"
-                                                    >
-                                                        Launch Virtual Consultation
-                                                    </button>
+                                                    <h4 className="font-outfit font-bold text-xl">{s.title}</h4>
+                                                    <p className="text-white/70 text-sm mt-1">{s.desc}</p>
                                                 </div>
-                                            ) : (
-                                                <div className="text-left flex flex-col justify-between h-full">
-                                                    <div>
-                                                        <div className="w-12 h-12 rounded-xl bg-primary/[0.07] border border-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary group-hover:shadow-lg group-hover:shadow-primary/30 transition-all duration-300">
-                                                            <i className={`fa-solid ${s.icon} text-primary text-lg group-hover:text-white transition-colors duration-300`}></i>
-                                                        </div>
-                                                        <h3 className="font-outfit font-bold text-dark text-base mb-2 group-hover:text-primary transition-colors">{s.title}</h3>
-                                                        <p className="text-slate-500 text-xs leading-relaxed">{s.desc}</p>
-                                                    </div>
+                                            </>
+                                        ) : (
+                                            <div className="p-5 flex flex-col justify-center h-full relative">
+                                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm border border-slate-200 mb-3 group-hover:scale-110 transition-transform duration-300">
+                                                    <i className={`fa-solid ${s.icon} text-secondary text-sm`}></i>
                                                 </div>
-                                            )}
-                                        </div>
+                                                <h4 className="font-bold text-slate-800 text-sm">{s.title}</h4>
+                                                <p className="text-slate-500 text-xs mt-1 leading-relaxed">{s.desc}</p>
+                                            </div>
+                                        )}
                                     </FadeIn>
                                 );
                             })}
@@ -959,208 +705,72 @@ if (isset($_SESSION['user_id']) && !isset($_GET['public'])) {
             );
         }
 
-        /* ─── Why Choose Us Component (Visual Timeline) ─── */
-        function WhyChooseUs() {
-            return (
-                <section className="py-20 bg-white relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-primary/[0.02] rounded-full blur-[100px]"></div>
-                    
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                        <div className="grid lg:grid-cols-12 gap-12 lg:gap-20 items-start">
-                            
-                            {/* Sticky Left Editorial Header */}
-                            <div className="lg:col-span-5 lg:sticky lg:top-28 text-left">
-                                <FadeIn>
-                                    <span className="text-primary font-bold text-xs tracking-[0.25em] uppercase">
-                                        Why Choose Us
-                                    </span>
-                                    <h2 className="font-outfit font-black text-3xl sm:text-4xl text-dark mt-2.5 mb-6 leading-tight">
-                                        Setting Standards in Patient Care
-                                    </h2>
-                                    <p className="text-slate-500 leading-relaxed mb-9">
-                                        We go beyond standard procedures. We establish deep relationship bridges with our patients to deliver diagnostic transparency and real-world treatment efficacy.
-                                    </p>
-                                </FadeIn>
-                                
-                                <FadeIn delay={200}>
-                                    <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-slate-900/10 border border-slate-100">
-                                        <img src={IMG.whyChoose} alt="CarePulse Operating Theater" className="w-full object-cover aspect-[4/3] hover:scale-102 transition-transform duration-700" loading="lazy" />
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-dark/60 via-transparent to-transparent"></div>
-                                        <div className="absolute bottom-5 left-5 right-5 glass-panel-dark rounded-2xl px-5 py-4 border border-white/5">
-                                            <p className="text-white font-bold text-sm">State-of-the-Art Operations</p>
-                                            <p className="text-white/60 text-[11px] mt-0.5">Equipped with robotic and micro-surgical instruments</p>
-                                        </div>
-                                    </div>
-                                </FadeIn>
-                            </div>
-
-                            {/* Right Vertical Interactive Timeline */}
-                            <div className="lg:col-span-7 relative text-left">
-                                <div className="absolute left-[29px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-primary via-secondary to-transparent hidden lg:block"></div>
-                                <div className="space-y-6">
-                                    {whyItems.map((it, i) => (
-                                        <FadeIn key={i} delay={i * 100}>
-                                            <div className="group flex gap-6">
-                                                <div className="hidden lg:flex flex-col items-center flex-shrink-0 relative z-10">
-                                                    <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 group-hover:border-primary flex items-center justify-center font-outfit font-black text-sm text-slate-400 group-hover:text-primary transition-all duration-300 shadow-sm">
-                                                        0{i + 1}
-                                                    </div>
-                                                </div>
-                                                <div className="bg-[#f4f7fc]/50 hover:bg-white rounded-3xl p-6.5 border border-slate-200/50 hover:border-primary/20 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all flex-1">
-                                                    <h3 className="font-outfit font-black text-dark text-base mb-2 group-hover:text-primary transition-colors">
-                                                        {it.title}
-                                                    </h3>
-                                                    <p className="text-slate-500 text-xs leading-relaxed">
-                                                        {it.desc}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </FadeIn>
-                                    ))}
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </section>
-            );
-        }
-
-        /* ─── Testimonials Carousel Component ─── */
+        // ======================================================
+        //  TESTIMONIALS — auto-rotate, decorative quotes
+        // ======================================================
         function Testimonials() {
-            const [active, setActive] = useState(0);
-            const sliderRef = useRef(null);
+            const list = [
+                { name: 'Rebecca Thompson', role: 'Heart Surgery Patient', text: 'The cardiology team saved my life. Every moment was handled with professionalism and compassion. I will never forget their exceptional kindness and expertise.', img: IMG.pat1 },
+                { name: 'David Kim', role: 'Orthopedic Patient', text: 'After years of chronic back pain, Dr. Chen performed a minimally invasive surgery. I was walking the next day and fully recovered within just three weeks.', img: IMG.pat2 },
+                { name: 'Susan Clarke', role: 'Maternity Patient', text: 'Maternity care exceeded every expectation. They made everything feel safe and joyful. I wholeheartedly recommend them to every expecting mother.', img: IMG.pat3 },
+                { name: 'Robert Hayes', role: 'Telehealth Patient', text: 'Online consultation was a true game-changer. Speaking with my neurologist from home while receiving thorough, personalized advice is the future of healthcare.', img: IMG.pat4 },
+            ];
+            const [idx, setIdx] = useState(0);
+            const timerRef = useRef(null);
 
-            useEffect(() => {
-                sliderRef.current = setInterval(() => {
-                    setActive(prev => (prev + 1) % testis.length);
-                }, 6000);
-                return () => clearInterval(sliderRef.current);
-            }, []);
+            const startTimer = useCallback(() => {
+                if (timerRef.current) clearInterval(timerRef.current);
+                timerRef.current = setInterval(() => setIdx(prev => (prev + 1) % list.length), 5000);
+            }, [list.length]);
 
-            const manualSelect = (idx) => {
-                setActive(idx);
-                clearInterval(sliderRef.current);
-                sliderRef.current = setInterval(() => {
-                    setActive(prev => (prev + 1) % testis.length);
-                }, 6000);
-            };
+            useEffect(() => { startTimer(); return () => clearInterval(timerRef.current); }, [startTimer]);
 
-            const t = testis[active];
+            const goTo = (i) => { setIdx(i); startTimer(); };
 
             return (
-                <section id="testimonials" className="py-24 bg-[#f4f7fc]">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <FadeIn className="text-center max-w-2xl mx-auto mb-16">
-                            <span className="text-primary font-bold text-xs tracking-[0.25em] uppercase">
-                                Verified Testimonials
-                            </span>
-                            <h2 className="font-outfit font-black text-3xl sm:text-4xl text-dark mt-2.5 mb-4 leading-tight">
-                                What Our Patients Say
-                            </h2>
-                            <p className="text-slate-500">
-                                Real clinical recovery narratives shared by patients who received treatments inside our multi-specialty setups.
-                            </p>
-                        </FadeIn>
-
-                        <FadeIn>
-                            <div className="max-w-3xl mx-auto">
-                                <div className="relative bg-white rounded-[2.5rem] border border-slate-200/60 shadow-2xl shadow-slate-900/5 p-8 sm:p-14 text-left">
-                                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/25">
-                                        <i className="fa-solid fa-quote-left text-white text-base"></i>
-                                    </div>
-                                    
-                                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8">
-                                        <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-md flex-shrink-0 ring-4 ring-primary/10">
-                                            <img src={t.img} alt={t.name} className="w-full h-full object-cover" />
+                <section id="testimonials" className="section-pad bg-warm relative overflow-hidden">
+                    <div className="absolute top-10 right-10 w-80 h-80 dot-pattern rounded-full pointer-events-none opacity-40"></div>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-12 items-center">
+                        <div className="lg:col-span-6">
+                            <FadeIn>
+                                <span className="inline-flex items-center gap-2 text-secondary font-bold text-xs tracking-[0.2em] uppercase">
+                                    <span className="w-8 h-[2px] bg-secondary rounded-full"></span> Testimonials
+                                </span>
+                                <h2 className="font-outfit font-black text-3xl sm:text-4xl text-slate-900 mt-3">Patient stories</h2>
+                                <p className="text-slate-500 text-sm mt-2">Real experiences from people whose lives we've touched.</p>
+                            </FadeIn>
+                            <div className="mt-8 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-lg relative overflow-hidden">
+                                <span className="quote-mark">"</span>
+                                <div className="relative z-10">
+                                    <p className="text-lg text-slate-700 leading-relaxed italic mt-6">"{list[idx].text}"</p>
+                                    <div className="flex items-center gap-4 mt-8 pt-6 border-t border-slate-100">
+                                        <img src={list[idx].img} className="w-14 h-14 rounded-full object-cover ring-2 ring-secondary ring-offset-2" alt={list[idx].name} />
+                                        <div>
+                                            <p className="font-bold text-slate-800">{list[idx].name}</p>
+                                            <p className="text-secondary text-sm font-medium">{list[idx].role}</p>
                                         </div>
-                                        <div className="text-center sm:text-left">
-                                            <div className="flex items-center justify-center sm:justify-start gap-1 mb-2.5">
-                                                {Array.from({ length: 5 }).map((_, j) => (
-                                                    <i key={j} className={`fa-solid fa-star text-xs ${j < t.rating ? 'text-amber-400' : 'text-slate-200'}`}></i>
-                                                ))}
-                                            </div>
-                                            <p className="font-outfit font-black text-dark text-lg">{t.name}</p>
-                                            <p className="text-slate-400 text-xs font-semibold tracking-wider uppercase">Verified Recovery</p>
+                                        <div className="ml-auto flex text-amber-400 text-sm gap-0.5">
+                                            {[1,2,3,4,5].map(s => <i key={s} className="fa-solid fa-star"></i>)}
                                         </div>
-                                    </div>
-                                    
-                                    <p className="text-slate-600 text-[17px] leading-relaxed italic">
-                                        "{t.text}"
-                                    </p>
-                                    
-                                    {/* Slider Controls */}
-                                    <div className="flex items-center justify-between mt-10 pt-8 border-t border-slate-100">
-                                        <button 
-                                            onClick={() => manualSelect((active - 1 + testis.length) % testis.length)} 
-                                            className="w-11 h-11 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all"
-                                            aria-label="Previous Testimonial"
-                                        >
-                                            <i className="fa-solid fa-chevron-left text-xs"></i>
-                                        </button>
-                                        <div className="flex gap-2">
-                                            {testis.map((_, idx) => (
-                                                <button 
-                                                    key={idx} 
-                                                    onClick={() => manualSelect(idx)} 
-                                                    className={`h-2.5 rounded-full transition-all duration-300 ${idx === active ? 'w-8 bg-primary' : 'w-2.5 bg-slate-200 hover:bg-slate-300'}`}
-                                                    aria-label={`Testimonial ${idx + 1}`}
-                                                ></button>
-                                            ))}
-                                        </div>
-                                        <button 
-                                            onClick={() => manualSelect((active + 1) % testis.length)} 
-                                            className="w-11 h-11 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all"
-                                            aria-label="Next Testimonial"
-                                        >
-                                            <i className="fa-solid fa-chevron-right text-xs"></i>
-                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        </FadeIn>
-                    </div>
-                </section>
-            );
-        }
-
-        /* ─── Ready to Consult Banner Component ─── */
-        function AppointmentCTA() {
-            return (
-                <section className="py-24 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary-dark via-primary to-secondary animate-glow-shift"></div>
-                    <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle at 10% 50%, white 1px, transparent 1px), radial-gradient(circle at 90% 10%, white 1px, transparent 1px), radial-gradient(circle at 50% 90%, white 1px, transparent 1px)', backgroundSize: '70px 70px' }}></div>
-                    
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-                        <FadeIn className="mb-14">
-                            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4.5 py-2 mb-6 border border-white/10">
-                                <i className="fa-solid fa-sparkles text-amber-300 text-xs animate-pulse-soft"></i>
-                                <span className="text-white text-xs font-bold uppercase tracking-wider">Appointment Center</span>
+                            <div className="flex gap-2 mt-5">
+                                {list.map((_, i) => (
+                                    <button key={i} onClick={() => goTo(i)} className={`progress-dot ${i === idx ? 'active' : 'inactive'}`}></button>
+                                ))}
                             </div>
-                            <h2 className="font-outfit font-black text-3xl sm:text-5xl text-white mb-5 leading-tight">
-                                Ready to Consult Our Specialists?
-                            </h2>
-                            <p className="text-white/70 text-base max-w-xl mx-auto">
-                                Schedule your physical checkout or secure virtual consultation today. We process submissions within 2 hours.
-                            </p>
-                        </FadeIn>
-
-                        <div className="grid sm:grid-cols-3 gap-5 max-w-3xl mx-auto">
-                            {[
-                                { icon: 'fa-calendar-check', label: 'Online Scheduler', sub: 'Fill standard form below', act: () => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' }) },
-                                { icon: 'fa-phone', label: 'Call Patient Services', sub: '+1 (555) 234-5678', act: () => window.location.href = 'tel:+15552345678' },
-                                { icon: 'fa-envelope', label: 'Email Help Desk', sub: 'care@carepulse.com', act: () => window.location.href = 'mailto:care@carepulse.com' }
-                            ].map((c, i) => (
-                                <FadeIn key={i} delay={i * 120}>
-                                    <button 
-                                        onClick={c.act} 
-                                        className="group w-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-white/20 rounded-2xl p-6.5 text-left hover:-translate-y-1 transition-all duration-300"
-                                    >
-                                        <div className="w-12 h-12 rounded-xl bg-white/10 group-hover:scale-105 transition-all flex items-center justify-center mb-4 text-white">
-                                            <i className={`fa-solid ${c.icon} text-lg`}></i>
+                        </div>
+                        <div className="lg:col-span-6 grid gap-3">
+                            {list.map((t, i) => (
+                                <FadeIn key={i} delay={i * 60}>
+                                    <button onClick={() => goTo(i)} className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 card-hover text-left ${i === idx ? 'bg-primary/[0.04] border-secondary/40 shadow-lg ring-1 ring-secondary/20' : 'bg-white border-slate-200'}`}>
+                                        <img src={t.img} className={`w-12 h-12 rounded-full object-cover transition-all ${i === idx ? 'ring-2 ring-secondary ring-offset-2' : ''}`} alt={t.name} />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-slate-800 text-sm">{t.name}</p>
+                                            <p className="text-slate-500 text-xs truncate">{t.text.slice(0, 55)}…</p>
                                         </div>
-                                        <p className="text-white font-bold mb-1 text-sm">{c.label}</p>
-                                        <p className="text-white/50 text-[11px] font-medium tracking-wide">{c.sub}</p>
+                                        {i === idx && <div className="w-2 h-2 bg-secondary rounded-full animate-pulse flex-shrink-0"></div>}
                                     </button>
                                 </FadeIn>
                             ))}
@@ -1170,398 +780,218 @@ if (isset($_SESSION['user_id']) && !isset($_GET['public'])) {
             );
         }
 
-        /* ─── Frequently Asked Questions Component ─── */
-        function FAQ() {
-            const [openIndex, setOpenIndex] = useState(null);
-            const toggleFaq = (idx) => setOpenIndex(openIndex === idx ? null : idx);
-            
+        // ======================================================
+        //  CTA — background image, glass overlay
+        // ======================================================
+        function CTA() {
             return (
-                <section className="py-20 bg-white">
-                    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <FadeIn className="text-center mb-16">
-                            <span className="text-primary font-bold text-xs tracking-[0.25em] uppercase">
-                                Help & Support
-                            </span>
-                            <h2 className="font-outfit font-black text-3xl sm:text-4xl text-dark mt-2.5 mb-4 leading-tight">
-                                Frequently Asked Questions
-                            </h2>
-                            <p className="text-slate-500">
-                                Clear answers about insurance coverage, diagnostic report accesses, and booking mechanisms.
-                            </p>
+                <section className="relative overflow-hidden">
+                    <img src={IMG.cta} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-primary/85"></div>
+                    <div className="absolute inset-0 shimmer-bg"></div>
+                    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex flex-col sm:flex-row items-center justify-between gap-8 text-white">
+                        <FadeIn>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+                                <span className="text-emerald-300 text-sm font-semibold">Next available slot: Today</span>
+                            </div>
+                            <h2 className="font-outfit font-black text-3xl sm:text-4xl">Ready to schedule?</h2>
+                            <p className="text-white/70 mt-2 max-w-md">Book your diagnostic slot or consult with a specialist. Our team responds within 30 minutes.</p>
                         </FadeIn>
-
-                        <div className="space-y-4">
-                            {faqs.map((f, i) => (
-                                <FadeIn key={i} delay={i * 50}>
-                                    <div className={`rounded-2xl overflow-hidden transition-all duration-300 ${openIndex === i ? 'bg-primary/[0.02] border-primary/20 shadow-lg shadow-primary/5' : 'bg-[#f4f7fc]/40 hover:bg-[#f4f7fc]/80 border-slate-100'} border text-left`}>
-                                        <button 
-                                            onClick={() => toggleFaq(i)} 
-                                            className="w-full flex items-center justify-between p-5 text-left gap-4" 
-                                            aria-expanded={openIndex === i}
-                                        >
-                                            <span className={`font-outfit font-bold text-sm sm:text-base transition-colors ${openIndex === i ? 'text-primary' : 'text-dark'}`}>
-                                                {f.q}
-                                            </span>
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${openIndex === i ? 'bg-primary text-white' : 'bg-slate-200/60 text-slate-400'}`}>
-                                                <i className={`fa-solid fa-plus faq-plus text-xs ${openIndex === i ? 'open text-white' : ''}`}></i>
-                                            </div>
-                                        </button>
-                                        <div className={`faq-body ${openIndex === i ? 'open' : ''}`}>
-                                            <p className="px-5 pb-5 text-slate-500 text-xs sm:text-sm leading-relaxed border-t border-slate-100/50 pt-4">
-                                                {f.a}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </FadeIn>
-                            ))}
-                        </div>
+                        <FadeIn delay={150}>
+                            <div className="flex flex-wrap gap-4">
+                                <button onClick={() => document.getElementById('contact').scrollIntoView({behavior:'smooth'})} className="bg-white text-primary px-8 py-4 rounded-full font-bold shadow-xl hover:bg-slate-100 hover:shadow-2xl transition-all duration-300 flex items-center gap-2">
+                                    <i className="fa-solid fa-calendar-check"></i> Book Now
+                                </button>
+                                <a href="tel:+15552345678" className="border border-white/30 backdrop-blur-sm px-8 py-4 rounded-full font-bold hover:bg-white/10 transition-all duration-300 flex items-center gap-2">
+                                    <i className="fa-solid fa-phone"></i> Call Desk
+                                </a>
+                            </div>
+                        </FadeIn>
                     </div>
                 </section>
             );
         }
 
-        /* ─── Contact & Scheduling Component ─── */
+        // ======================================================
+        //  CONTACT — enhanced form, working hours
+        // ======================================================
         function Contact() {
             const [form, setForm] = useState({ name: '', email: '', phone: '', dept: '', msg: '' });
-            const [submitting, setSubmitting] = useState(false);
-            const [success, setSuccess] = useState(false);
-            
-            const updateField = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
-            
-            const handleFormSubmit = (e) => {
-                e.preventDefault();
-                setSubmitting(true);
-                // Simulate backend transmission delay
-                setTimeout(() => {
-                    setSubmitting(false);
-                    setSuccess(true);
-                    setForm({ name: '', email: '', phone: '', dept: '', msg: '' });
-                    setTimeout(() => setSuccess(false), 5000);
-                }, 1500);
-            };
+            const [sent, setSent] = useState(false);
+            const handleSubmit = (e) => { e.preventDefault(); setSent(true); setTimeout(() => setSent(false), 4000); };
 
             return (
-                <section id="contact" className="py-24 bg-[#f4f7fc] relative overflow-hidden">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                        <FadeIn className="text-center max-w-2xl mx-auto mb-16">
-                            <span className="text-primary font-bold text-xs tracking-[0.25em] uppercase">
-                                Connect with Us
+                <section id="contact" className="section-pad bg-white">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <FadeIn className="text-center max-w-2xl mx-auto mb-14">
+                            <span className="inline-flex items-center gap-2 text-secondary font-bold text-xs tracking-[0.2em] uppercase">
+                                <span className="w-8 h-[2px] bg-secondary rounded-full"></span> Get in Touch <span className="w-8 h-[2px] bg-secondary rounded-full"></span>
                             </span>
-                            <h2 className="font-outfit font-black text-3xl sm:text-4xl text-dark mt-2.5 mb-4 leading-tight">
-                                Contact & Appointment Booking
-                            </h2>
-                            <p className="text-slate-500">
-                                Send a message or request a specific physician consultation. We will coordinate details with you.
-                            </p>
+                            <h2 className="font-outfit font-black text-3xl sm:text-4xl text-slate-900 mt-3">Request consultation</h2>
                         </FadeIn>
-
-                        <div className="grid lg:grid-cols-12 gap-10 items-stretch">
-                            {/* Left Side: Booking Form */}
-                            <div className="lg:col-span-7 flex">
-                                <FadeIn className="w-full flex">
-                                    <div className="bg-white rounded-[2rem] border border-slate-200/60 shadow-2xl shadow-slate-900/5 p-6 sm:p-10 w-full text-left">
-                                        {success ? (
-                                            <div className="text-center py-20">
-                                                <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500">
-                                                    <i className="fa-solid fa-check-double text-2xl"></i>
+                        <div className="grid lg:grid-cols-12 gap-10">
+                            <div className="lg:col-span-7">
+                                <FadeIn>
+                                    <div className="bg-warm p-8 sm:p-10 rounded-3xl shadow-md border border-slate-200">
+                                        {sent ? (
+                                            <div className="py-16 text-center">
+                                                <div className="w-16 h-16 mx-auto rounded-full bg-secondary/10 flex items-center justify-center mb-4">
+                                                    <i className="fa-solid fa-check text-secondary text-2xl"></i>
                                                 </div>
-                                                <h3 className="font-outfit font-black text-dark text-xl mb-3">Appointment Requested</h3>
-                                                <p className="text-slate-500 text-sm max-w-sm mx-auto">
-                                                    Your clinical routing record is generated. Our scheduling nurse will contact you within 2 hours.
-                                                </p>
+                                                <h3 className="font-outfit font-bold text-xl text-slate-800">Request Submitted!</h3>
+                                                <p className="text-slate-500 mt-2">We'll connect within 2 hours during business hours.</p>
                                             </div>
                                         ) : (
-                                            <form onSubmit={handleFormSubmit}>
-                                                <h3 className="font-outfit font-black text-dark text-xl mb-6">
-                                                    Request Patient Diagnostics Slot
-                                                </h3>
-                                                
-                                                <div className="grid sm:grid-cols-2 gap-5 mb-5">
-                                                    <div>
-                                                        <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Patient Full Name</label>
-                                                        <input 
-                                                            type="text" 
-                                                            required 
-                                                            value={form.name} 
-                                                            onChange={e => updateField('name', e.target.value)} 
-                                                            className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-[#f4f7fc]/50 focus:bg-white" 
-                                                            placeholder="John Doe" 
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Email Address</label>
-                                                        <input 
-                                                            type="email" 
-                                                            required 
-                                                            value={form.email} 
-                                                            onChange={e => updateField('email', e.target.value)} 
-                                                            className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-[#f4f7fc]/50 focus:bg-white" 
-                                                            placeholder="johndoe@email.com" 
-                                                        />
-                                                    </div>
+                                            <form onSubmit={handleSubmit} className="space-y-4">
+                                                <div className="grid sm:grid-cols-2 gap-4">
+                                                    <input type="text" placeholder="Full name" className="w-full p-4 rounded-xl border border-slate-200 bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/10 outline-none transition-all" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
+                                                    <input type="email" placeholder="Email address" className="w-full p-4 rounded-xl border border-slate-200 bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/10 outline-none transition-all" value={form.email} onChange={e => setForm({...form, email: e.target.value})} required />
                                                 </div>
-
-                                                <div className="grid sm:grid-cols-2 gap-5 mb-5">
-                                                    <div>
-                                                        <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Mobile Number</label>
-                                                        <input 
-                                                            type="tel" 
-                                                            required 
-                                                            value={form.phone} 
-                                                            onChange={e => updateField('phone', e.target.value)} 
-                                                            className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-[#f4f7fc]/50 focus:bg-white" 
-                                                            placeholder="+1 (555) 000-0000" 
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Clinical Department</label>
-                                                        <div className="relative">
-                                                            <select 
-                                                                required 
-                                                                value={form.dept} 
-                                                                onChange={e => updateField('dept', e.target.value)} 
-                                                                className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-[#f4f7fc]/50 focus:bg-white appearance-none"
-                                                            >
-                                                                <option value="">Select Specialty</option>
-                                                                {depts.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}
-                                                            </select>
-                                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                                                <i className="fa-solid fa-chevron-down text-xs"></i>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                <div className="grid sm:grid-cols-2 gap-4">
+                                                    <input type="tel" placeholder="Phone number" className="w-full p-4 rounded-xl border border-slate-200 bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/10 outline-none transition-all" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+                                                    <select className="w-full p-4 rounded-xl border border-slate-200 bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/10 outline-none transition-all text-slate-500" value={form.dept} onChange={e => setForm({...form, dept: e.target.value})}>
+                                                        <option value="">Select department</option>
+                                                        <option>Cardiology</option>
+                                                        <option>Neurology</option>
+                                                        <option>Orthopedics</option>
+                                                        <option>Pediatrics</option>
+                                                        <option>Gynecology</option>
+                                                        <option>Emergency</option>
+                                                        <option>General Medicine</option>
+                                                    </select>
                                                 </div>
-
-                                                <div className="mb-6">
-                                                    <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Brief Clinical Concern / History Notes</label>
-                                                    <textarea 
-                                                        rows="3" 
-                                                        value={form.msg} 
-                                                        onChange={e => updateField('msg', e.target.value)} 
-                                                        className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all resize-none bg-[#f4f7fc]/50 focus:bg-white" 
-                                                        placeholder="Describe symptoms, requirements, or preferred diagnostic slot timings..."
-                                                    ></textarea>
-                                                </div>
-
-                                                <button 
-                                                    type="submit" 
-                                                    disabled={submitting}
-                                                    className="w-full bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white py-4 rounded-xl font-bold shadow-xl shadow-primary/20 hover:shadow-primary/35 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2.5"
-                                                >
-                                                    {submitting ? (
-                                                        <>
-                                                            <i className="fa-solid fa-circle-notch animate-spin"></i> Processing Request...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <i className="fa-regular fa-paper-plane text-sm"></i> Submit Request
-                                                        </>
-                                                    )}
+                                                <textarea rows="4" placeholder="Describe your concern or clinical notes..." className="w-full p-4 rounded-xl border border-slate-200 bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/10 outline-none transition-all resize-none" value={form.msg} onChange={e => setForm({...form, msg: e.target.value})}></textarea>
+                                                <button type="submit" className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-md shadow-primary/10 hover:bg-primary-dark hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
+                                                    <i className="fa-solid fa-paper-plane text-sm"></i> Submit Request
                                                 </button>
                                             </form>
                                         )}
                                     </div>
                                 </FadeIn>
                             </div>
-
-                            {/* Right Side: Emergency Contact Info & Map */}
-                            <div className="lg:col-span-5 flex flex-col justify-between gap-5">
-                                <FadeIn delay={100} className="w-full h-full flex flex-col gap-5">
-                                    {/* Glass Contact Info Cards */}
-                                    <div className="bg-white rounded-[2rem] border border-slate-200/60 shadow-sm p-6 text-left space-y-6 flex-1 flex flex-col justify-center">
-                                        <h3 className="font-outfit font-black text-dark text-lg mb-2">Hospital Directory</h3>
-                                        
-                                        <div className="space-y-5">
-                                            {[
-                                                { icon: 'fa-location-dot', cl: 'bg-primary/10 text-primary border-primary/20', lb: 'Main Address', val: '1234 Healthcare Boulevard, Medical District, New York, NY 10001' },
-                                                { icon: 'fa-phone', cl: 'bg-secondary/10 text-secondary border-secondary/20', lb: 'Direct Helpdesk', val: '+1 (555) 234-5678', link: 'tel:+15552345678' },
-                                                { icon: 'fa-envelope', cl: 'bg-primary/10 text-primary border-primary/20', lb: 'Direct Email Support', val: 'care@carepulse.com', link: 'mailto:care@carepulse.com' },
-                                                { icon: 'fa-clock', cl: 'bg-secondary/10 text-secondary border-secondary/20', lb: 'OPD Hours', val: 'Mon – Sat: 8:00 AM – 8:00 PM\nSunday: Emergency Only' },
-                                            ].map((c, idx) => (
-                                                <div key={idx} className="flex gap-4 items-start">
-                                                    <div className={`w-10 h-10 rounded-xl ${c.cl} border flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                                                        <i className={`fa-solid ${c.icon} text-sm`}></i>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{c.lb}</p>
-                                                        {c.link ? (
-                                                            <a href={c.link} className="text-sm font-semibold text-dark hover:text-primary transition-colors">{c.val}</a>
-                                                        ) : (
-                                                            <p className="text-sm font-semibold text-dark whitespace-pre-line leading-relaxed">{c.val}</p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
+                            <div className="lg:col-span-5 space-y-5">
+                                <FadeIn delay={100}>
+                                    <div className="bg-warm p-6 rounded-2xl border border-slate-200">
+                                        <h4 className="font-bold text-slate-800 flex items-center gap-2"><i className="fa-solid fa-location-dot text-secondary"></i> Direct Contact</h4>
+                                        <div className="space-y-3 mt-4 text-sm text-slate-600">
+                                            <p className="flex items-center gap-3"><i className="fa-solid fa-location-dot text-secondary w-5 text-center"></i> 1234 Healthcare Blvd, New York, NY</p>
+                                            <p className="flex items-center gap-3"><i className="fa-solid fa-phone text-secondary w-5 text-center"></i> +1 (555) 234-5678</p>
+                                            <p className="flex items-center gap-3"><i className="fa-solid fa-envelope text-secondary w-5 text-center"></i> care@carepulse.com</p>
                                         </div>
                                     </div>
-
-                                    {/* Emergency Hotline Panel */}
-                                    <div className="bg-gradient-to-br from-red-600 to-rose-700 rounded-[2rem] p-6 text-white shadow-xl shadow-red-600/25 relative overflow-hidden text-left">
-                                        <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full"></div>
-                                        <div className="relative">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm shadow-md">
-                                                    <i className="fa-solid fa-truck-medical text-lg"></i>
-                                                </div>
-                                                <div>
-                                                    <p className="font-outfit font-black text-sm text-white">Emergency Trauma Line</p>
-                                                    <p className="text-white/70 text-xs">Available 24/7/365</p>
-                                                </div>
+                                </FadeIn>
+                                <FadeIn delay={150}>
+                                    <div className="bg-warm p-6 rounded-2xl border border-slate-200">
+                                        <h4 className="font-bold text-slate-800 flex items-center gap-2"><i className="fa-solid fa-clock text-secondary"></i> Working Hours</h4>
+                                        <div className="space-y-2 mt-4 text-sm">
+                                            <div className="flex justify-between"><span className="text-slate-500">Mon — Fri</span><span className="font-semibold text-slate-700">8:00 AM — 9:00 PM</span></div>
+                                            <div className="flex justify-between"><span className="text-slate-500">Saturday</span><span className="font-semibold text-slate-700">9:00 AM — 6:00 PM</span></div>
+                                            <div className="flex justify-between"><span className="text-slate-500">Sunday</span><span className="font-semibold text-slate-700">10:00 AM — 4:00 PM</span></div>
+                                            <div className="flex justify-between pt-1 border-t border-slate-200"><span className="text-slate-500">Emergency</span><span className="font-semibold text-emerald-600">24/7 Open</span></div>
+                                        </div>
+                                    </div>
+                                </FadeIn>
+                                <FadeIn delay={200}>
+                                    <div className="bg-gradient-to-br from-primary to-primary-dark text-white p-6 rounded-2xl shadow-lg shadow-primary/15">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center animate-pulse-ring">
+                                                <i className="fa-solid fa-phone-volume text-xl"></i>
                                             </div>
-                                            <a href="tel:+1555911" className="font-outfit font-black text-3xl tracking-wide hover:text-white/80 transition-colors block">
-                                                +1 (555) 911
-                                            </a>
+                                            <div>
+                                                <p className="font-bold text-sm">Emergency Hotline 24/7</p>
+                                                <p className="text-2xl font-black font-outfit">+1 (555) 911</p>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    {/* Leaflet/OpenStreetMap Map Area */}
-                                    <div className="rounded-[2rem] overflow-hidden border border-slate-200 shadow-sm h-48 bg-slate-200 relative">
-                                        <iframe 
-                                            title="CarePulse Hospital Location Map" 
-                                            src="https://www.openstreetmap.org/export/embed.html?bbox=-74.01,40.75,-73.97,40.77&layer=mapnik" 
-                                            className="w-full h-full border-none filter grayscale opacity-90 hover:grayscale-0 transition-all duration-500" 
-                                            loading="lazy"
-                                        ></iframe>
-                                    </div>
+                                </FadeIn>
+                                <FadeIn delay={250}>
+                                    <img src={IMG.lobby} alt="Hospital reception" className="rounded-2xl border border-slate-200 w-full h-36 object-cover shadow-sm" />
                                 </FadeIn>
                             </div>
                         </div>
-
                     </div>
                 </section>
             );
         }
 
-        /* ─── Footer Section Component ─── */
+        // ======================================================
+        //  FOOTER — wave, newsletter, enhanced layout
+        // ======================================================
         function Footer() {
-            const scrollToElement = id => {
-                document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-            };
-            
+            const [email, setEmail] = useState('');
             return (
-                <footer className="bg-dark relative" role="contentinfo">
-                    {/* Glowing Accent Line */}
-                    <div className="h-[4px] bg-gradient-to-r from-primary via-secondary to-primary-light"></div>
-                    
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 text-left">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
-                            
-                            {/* Column 1: Brand & Socials */}
-                            <div className="lg:col-span-4 space-y-6">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                                        <i className="fa-solid fa-heart-pulse text-white text-lg"></i>
+                <footer className="bg-primary-dark text-white/80 pt-16 pb-8 footer-wave">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 pb-10 border-b border-white/10">
+                            {/* Brand */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-9 h-9 bg-gradient-to-br from-secondary to-secondary-dark rounded-xl flex items-center justify-center shadow-md">
+                                        <i className="fa-solid fa-heart-pulse text-white text-xs"></i>
                                     </div>
-                                    <div>
-                                        <span className="font-outfit font-black text-lg block leading-tight text-white uppercase">
-                                            Care<span className="text-primary-light">Pulse</span>
-                                        </span>
-                                        <span className="text-[9px] font-bold text-slate-500 tracking-[0.25em] uppercase leading-none">
-                                            Healthcare
-                                        </span>
-                                    </div>
+                                    <span className="font-outfit font-black text-lg text-white">Care<span className="text-secondary-light">Pulse</span></span>
                                 </div>
-                                <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
-                                    Establishing global standards in clinical safety, medical diagnostics, and digitized care records with unwavering patient commitment.
-                                </p>
-                                <div className="flex gap-2.5">
+                                <p className="text-sm text-white/50 leading-relaxed">Advanced healthcare ecosystem delivering precision medicine and compassionate care since 1997.</p>
+                                <div className="flex gap-3 mt-5">
                                     {[
-                                        { ic: 'fa-facebook-f', l: 'Facebook' }, 
-                                        { ic: 'fa-x-twitter', l: 'Twitter' }, 
-                                        { ic: 'fa-instagram', l: 'Instagram' }, 
-                                        { ic: 'fa-linkedin-in', l: 'LinkedIn' }
-                                    ].map(s => (
-                                        <a 
-                                            key={s.l} 
-                                            href="#" 
-                                            aria-label={s.l} 
-                                            className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-500 hover:bg-primary hover:border-primary hover:text-white hover:-translate-y-1 transition-all duration-300"
-                                        >
-                                            <i className={`fa-brands ${s.ic} text-xs`}></i>
+                                        { icon: 'fa-facebook-f', hover: 'hover:bg-blue-600' },
+                                        { icon: 'fa-x-twitter', hover: 'hover:bg-slate-700' },
+                                        { icon: 'fa-linkedin-in', hover: 'hover:bg-blue-700' },
+                                        { icon: 'fa-instagram', hover: 'hover:bg-pink-600' },
+                                    ].map((s, i) => (
+                                        <a key={i} href="#" className={`w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center ${s.hover} transition-all duration-300`}>
+                                            <i className={`fa-brands ${s.icon} text-sm`}></i>
                                         </a>
                                     ))}
                                 </div>
                             </div>
 
-                            {/* Column 2: Quick Links */}
-                            <div className="lg:col-span-2.5 space-y-6">
-                                <h4 className="font-outfit font-bold text-xs uppercase tracking-[0.2em] text-white">Quick Links</h4>
-                                <ul className="space-y-3.5">
-                                    {[
-                                        ['Home Page', 'home'], 
-                                        ['About CarePulse', 'about'], 
-                                        ['Medical Specialties', 'departments'], 
-                                        ['Expert Doctors', 'doctors'], 
-                                        ['Offered Services', 'services'], 
-                                        ['Patient Stories', 'testimonials'], 
-                                        ['Get in Touch', 'contact']
-                                    ].map(([l, id]) => (
-                                        <li key={id}>
-                                            <button 
-                                                onClick={() => scrollToElement(id)} 
-                                                className="text-slate-400 text-xs hover:text-primary-light transition-colors flex items-center gap-2 group"
-                                            >
-                                                <i className="fa-solid fa-chevron-right text-[8px] text-primary/30 group-hover:text-primary-light group-hover:translate-x-1 transition-all"></i>
-                                                {l}
-                                            </button>
-                                        </li>
+                            {/* Quick links */}
+                            <div>
+                                <h5 className="font-bold text-white mb-5 text-sm tracking-wide">Quick Links</h5>
+                                <ul className="space-y-2.5">
+                                    {['Home', 'About', 'Departments', 'Doctors', 'Services', 'Contact'].map(l => (
+                                        <li key={l}><button onClick={() => document.getElementById(l.toLowerCase()).scrollIntoView({behavior:'smooth'})} className="text-sm text-white/50 hover:text-secondary-light transition-colors duration-200 flex items-center gap-2"><i className="fa-solid fa-chevron-right text-[8px] text-secondary/50"></i> {l}</button></li>
                                     ))}
                                 </ul>
                             </div>
 
-                            {/* Column 3: Specialties */}
-                            <div className="lg:col-span-2.5 space-y-6">
-                                <h4 className="font-outfit font-bold text-xs uppercase tracking-[0.2em] text-white">Clinical Specialties</h4>
-                                <ul className="space-y-3.5">
-                                    {depts.slice(0, 5).map(d => (
-                                        <li key={d.name}>
-                                            <button 
-                                                onClick={() => scrollToElement('departments')} 
-                                                className="text-slate-400 text-xs hover:text-primary-light transition-colors flex items-center gap-2 group"
-                                            >
-                                                <i className="fa-solid fa-chevron-right text-[8px] text-primary/30 group-hover:text-primary-light group-hover:translate-x-1 transition-all"></i>
-                                                {d.name}
-                                            </button>
-                                        </li>
+                            {/* Specialties */}
+                            <div>
+                                <h5 className="font-bold text-white mb-5 text-sm tracking-wide">Specialties</h5>
+                                <ul className="space-y-2.5 text-sm text-white/50">
+                                    {['Cardiology', 'Neurology', 'Orthopedics', 'Pediatrics', 'Gynecology', 'Emergency Medicine'].map(s => (
+                                        <li key={s} className="flex items-center gap-2"><i className="fa-solid fa-chevron-right text-[8px] text-secondary/50"></i> {s}</li>
                                     ))}
                                 </ul>
                             </div>
 
-                            {/* Column 4: Contact Center */}
-                            <div className="lg:col-span-3 space-y-6">
-                                <h4 className="font-outfit font-bold text-xs uppercase tracking-[0.2em] text-white">Clinical Coordinates</h4>
-                                <div className="space-y-4 text-slate-400 text-xs">
-                                    <div className="flex gap-3">
-                                        <i className="fa-solid fa-location-dot text-primary-light mt-0.5"></i>
-                                        <p className="leading-relaxed">1234 Healthcare Blvd, Medical District, New York, NY 10001</p>
-                                    </div>
-                                    <div className="flex gap-3">
-                                        <i className="fa-solid fa-phone text-primary-light mt-0.5"></i>
-                                        <div>
-                                            <a href="tel:+15552345678" className="hover:text-primary-light transition-colors block">+1 (555) 234-5678</a>
-                                            <a href="tel:+1555911" className="text-red-400 font-bold hover:text-red-300 transition-colors block mt-1">Trauma Emergency: +1 (555) 911</a>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-3">
-                                        <i className="fa-solid fa-envelope text-primary-light mt-0.5"></i>
-                                        <a href="mailto:care@carepulse.com" className="hover:text-primary-light transition-colors">care@carepulse.com</a>
+                            {/* Newsletter */}
+                            <div>
+                                <h5 className="font-bold text-white mb-5 text-sm tracking-wide">Stay Updated</h5>
+                                <p className="text-sm text-white/50 mb-4">Subscribe for health tips and hospital updates.</p>
+                                <form onSubmit={e => { e.preventDefault(); setEmail(''); }} className="flex gap-2">
+                                    <input type="email" placeholder="Your email" className="flex-1 px-4 py-2.5 rounded-xl bg-white/10 border border-white/10 text-white placeholder:text-white/30 text-sm outline-none focus:border-secondary/50 transition" value={email} onChange={e => setEmail(e.target.value)} />
+                                    <button type="submit" className="px-4 py-2.5 bg-secondary rounded-xl text-white font-bold text-sm hover:bg-secondary-light transition-colors">
+                                        <i className="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </form>
+                                <div className="mt-5 p-3 rounded-xl bg-white/5 border border-white/10">
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <i className="fa-solid fa-shield-halved text-secondary text-sm"></i>
+                                        <span className="text-white/40">Your data is protected under HIPAA compliance.</span>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
-                    </div>
 
-                    {/* Bottom Copyright Bar */}
-                    <div className="border-t border-white/5">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <p className="text-slate-500 text-xs">
-                                &copy; {new Date().getFullYear()} CarePulse Health Systems. All rights reserved.
-                            </p>
-                            <div className="flex gap-6 text-xs text-slate-500">
-                                {['Privacy Policy', 'Terms of Use', 'Sitemap Guidelines'].map(l => (
-                                    <a key={l} href="#" className="hover:text-slate-300 transition-colors">{l}</a>
-                                ))}
+                        <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/30">
+                            <p>&copy; 2025 CarePulse Health Systems. All rights reserved.</p>
+                            <div className="flex gap-6">
+                                <a href="#" className="hover:text-white/60 transition">Privacy Policy</a>
+                                <a href="#" className="hover:text-white/60 transition">Terms of Service</a>
+                                <a href="#" className="hover:text-white/60 transition">HIPAA Notice</a>
                             </div>
                         </div>
                     </div>
@@ -1569,41 +999,34 @@ if (isset($_SESSION['user_id']) && !isset($_GET['public'])) {
             );
         }
 
-        /* ─── Scroll to Top Button Component ─── */
+        // ======================================================
+        //  SCROLL TO TOP
+        // ======================================================
         function ScrollTop() {
             const y = useScrollY();
             return (
-                <button 
-                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
-                    className={`fixed bottom-6 right-6 z-50 w-12 h-12 rounded-2xl bg-primary text-white shadow-xl shadow-primary/25 flex items-center justify-center hover:bg-primary-dark hover:scale-105 active:scale-95 transition-all duration-300 ${y > 500 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 pointer-events-none'}`} 
-                    aria-label="Scroll back to top"
-                >
-                    <i className="fa-solid fa-arrow-up text-sm"></i>
+                <button onClick={() => window.scrollTo({top:0,behavior:'smooth'})} className={`fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-primary text-white shadow-lg shadow-primary/20 flex items-center justify-center hover:bg-primary-dark hover:scale-110 transition-all duration-300 ${y > 400 ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'}`}>
+                    <i className="fa-solid fa-arrow-up"></i>
                 </button>
             );
         }
 
-        /* ─── Main Application Container Component ─── */
+        // ======================================================
+        //  APP
+        // ======================================================
         function App() {
             return (
-                <div className="min-h-screen flex flex-col justify-between">
-                    <ScrollProgress />
+                <div className="min-h-screen flex flex-col">
                     <Navbar />
-                    <main className="flex-grow">
+                    <main className="flex-1">
                         <Hero />
                         <Stats />
-                        <Wave color="#f4f7fc" />
                         <About />
-                        <Wave color="#f4f7fc" flip />
                         <Departments />
                         <Doctors />
                         <Services />
-                        <WhyChooseUs />
-                        <Wave color="#f4f7fc" />
                         <Testimonials />
-                        <AppointmentCTA />
-                        <FAQ />
-                        <Wave color="#f4f7fc" flip />
+                        <CTA />
                         <Contact />
                     </main>
                     <Footer />
