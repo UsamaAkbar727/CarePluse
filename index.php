@@ -833,7 +833,6 @@
                 { title: 'Robotic Surgery', icon: 'fa-syringe', img: IMG.surgery, big: true, desc: 'Da Vinci robotic-assisted precision procedures' },
                 { title: 'Telehealth', icon: 'fa-laptop-medical', desc: 'Secure HD video consults from anywhere', color: 'from-emerald-500/10 to-emerald-500/5' },
                 { title: 'Pharmacy', icon: 'fa-prescription-bottle-medical', desc: 'Digital prescription & same-day delivery', color: 'from-amber-500/10 to-amber-500/5' },
-                { title: 'Ambulance', icon: 'fa-truck-medical', desc: 'GPS fleet with live patient monitoring feed', color: 'from-blue-500/10 to-blue-500/5' },
             ];
             return (
                 <section id="services" className="section-pad bg-white">
