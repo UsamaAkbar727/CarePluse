@@ -112,9 +112,10 @@ $predictive = CarePulseAI::getPredictiveAnalytics();
     </div>
     <div class="card-body">
         <div class="row text-center">
+            <?php if (in_array($user_role, ['admin', 'doctor', 'receptionist'])): ?>
             <div class="col-md-3 mb-2">
                 <a href="patients.php" class="btn btn-outline-primary btn-block p-3">
-                    <i class="fas fa-user-plus fa-2x d-block mb-2"></i> Register Patient
+                    <i class="fas fa-user-plus fa-2x d-block mb-2"></i> Patient Directory
                 </a>
             </div>
             <div class="col-md-3 mb-2">
@@ -122,16 +123,23 @@ $predictive = CarePulseAI::getPredictiveAnalytics();
                     <i class="fas fa-calendar-plus fa-2x d-block mb-2"></i> Book Appointment
                 </a>
             </div>
+            <?php endif; ?>
+
+            <?php if (in_array($user_role, ['admin', 'pharmacist'])): ?>
             <div class="col-md-3 mb-2">
                 <a href="dispenser.php" class="btn btn-outline-warning btn-block p-3">
                     <i class="fas fa-pills fa-2x d-block mb-2"></i> Dispense Pharmacy
                 </a>
             </div>
+            <?php endif; ?>
+
+            <?php if (in_array($user_role, ['admin', 'doctor', 'lab_tech'])): ?>
             <div class="col-md-3 mb-2">
                 <a href="dicom_viewer.php" class="btn btn-outline-danger btn-block p-3">
                     <i class="fas fa-microscope fa-2x d-block mb-2"></i> DICOM Radiology
                 </a>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>

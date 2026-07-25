@@ -86,7 +86,7 @@ $selectedImage = $demoImages[$doc_type] ?? 'clinical_hero.png';
                 <p class="small text-muted mb-3">
                     Bilateral lung fields clear with normal cardiac silhouette. No pleural effusion or pneumothorax identified. Osseous structures intact.
                 </p>
-                <button class="btn btn-success btn-block btn-sm font-weight-bold" onclick="alert('Radiology Report PDF generated and attached to patient profile!')">
+                <button class="btn btn-success btn-block btn-sm font-weight-bold" onclick="exportRadiologyReport()">
                     <i class="fas fa-download mr-1"></i> Export Diagnostic Report
                 </button>
             </div>
@@ -139,7 +139,8 @@ function zoomOut() { if (scale > 0.3) scale -= 0.15; render(); }
 function rotateCanvas() { rotation = (rotation + 90) % 360; render(); }
 function invertColors() { isInverted = !isInverted; render(); }
 function resetCanvas() { scale = 1.0; rotation = 0; isInverted = false; render(); }
-function toggleAnnotation() { alert("Annotation brush active! Draw directly on the radiology canvas."); }
+function toggleAnnotation() { Swal.fire({ icon: 'info', title: 'Annotation Mode', text: 'Annotation brush active! Draw directly on the radiology canvas.', timer: 2000, showConfirmButton: false }); }
+function exportRadiologyReport() { Swal.fire({ icon: 'success', title: 'Report Exported', text: 'Radiology Report PDF generated and attached to patient profile!', confirmButtonColor: '#10b981' }); }
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

@@ -164,7 +164,7 @@ function runAICopilotAnalysis(patientId) {
 function executeAIAnalysis() {
     const symptoms = document.getElementById('aiSymptomsInput').value;
     if (!symptoms) {
-        alert("Please enter patient symptoms first.");
+        Swal.fire({ icon: 'warning', title: 'Input Required', text: 'Please enter patient symptoms first.', confirmButtonColor: '#4f46e5' });
         return;
     }
     

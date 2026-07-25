@@ -200,25 +200,35 @@ setInterval(() => {
 }, 3000);
 
 function toggleAudio() {
-    alert("Microphone toggled.");
+    Swal.fire({ icon: 'info', title: 'Audio Control', text: 'Microphone state toggled.', timer: 1500, showConfirmButton: false });
 }
 function toggleVideo() {
-    alert("Camera state toggled.");
+    Swal.fire({ icon: 'info', title: 'Video Stream', text: 'HD Camera state toggled.', timer: 1500, showConfirmButton: false });
 }
 function endCall() {
-    if (confirm("Are you sure you want to conclude this live telehealth consultation?")) {
-        window.location.href = "appointments.php";
-    }
+    Swal.fire({
+        title: 'End Consultation?',
+        text: 'Are you sure you want to conclude this live telehealth session?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, End Call'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "appointments.php";
+        }
+    });
 }
 function shareScreen() {
-    alert("Screen sharing initialized.");
+    Swal.fire({ icon: 'success', title: 'Screen Share', text: 'Display sharing stream initialized.', timer: 1500, showConfirmButton: false });
 }
 function copyRoomLink() {
     navigator.clipboard.writeText(window.location.href);
-    alert("Encrypted room link copied to clipboard!");
+    Swal.fire({ icon: 'success', title: 'Link Copied', text: 'Encrypted telehealth room link copied to clipboard!', timer: 1800, showConfirmButton: false });
 }
 function saveTelehealthNotes() {
-    alert("Consultation notes successfully saved to Patient Electronic Health Record!");
+    Swal.fire({ icon: 'success', title: 'Notes Saved', text: 'Consultation notes successfully saved to Patient Electronic Health Record!', confirmButtonColor: '#4f46e5' });
 }
 </script>
 

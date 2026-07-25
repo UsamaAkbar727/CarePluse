@@ -341,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (container.querySelectorAll('.dispensation-row').length > 1) {
             this.closest('.dispensation-row').remove();
         } else {
-            alert("At least one mapping row must remain active.");
+            Swal.fire({ icon: 'info', title: 'Row Limit', text: 'At least one medicine mapping row must remain active.', timer: 2000, showConfirmButton: false });
         }
     });
 });
