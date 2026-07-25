@@ -143,10 +143,12 @@
             dept4: 'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=600&h=400&fit=crop&q=80',
             dept5: 'https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=600&h=400&fit=crop&q=80',
             dept6: 'https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?w=600&h=400&fit=crop&q=80',
-            doc1: 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=400&h=500&fit=crop&q=80',
-            doc2: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=400&h=500&fit=crop&q=80',
-            doc3: 'https://images.unsplash.com/photo-1618498082410-b4aa22193b38?w=400&h=500&fit=crop&q=80',
-            doc4: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=500&fit=crop&q=80',
+            doc1: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800&h=1000&fit=crop&q=80',
+            doc2: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=800&h=1000&fit=crop&q=80',
+            doc3: 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=800&h=1000&fit=crop&q=80',
+            doc4: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=800&h=1000&fit=crop&q=80',
+            doc5: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=800&h=1000&fit=crop&q=80',
+            doc6: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=1000&fit=crop&q=80',
             emerg: 'https://images.unsplash.com/photo-1585842378054-ee2e52f94ba2?w=600&h=400&fit=crop&q=80',
             surgery: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?w=700&h=500&fit=crop&q=80',
             scan: 'https://images.unsplash.com/photo-1516069677018-378515003435?w=700&h=500&fit=crop&q=80',
@@ -755,6 +757,8 @@
                 { name: 'Dr. James Rodriguez', spec: 'Neurologist', exp: '15 yrs', img: IMG.doc2, bio: 'Expert in stroke rehabilitation, neurodegenerative disorders and advanced brain mapping.' },
                 { name: 'Dr. Emily Chen', spec: 'Orthopedic Surgeon', exp: '12 yrs', img: IMG.doc3, bio: 'Minimally invasive joint reconstruction and sports injury specialist with robotic surgery expertise.' },
                 { name: 'Dr. Michael Patel', spec: 'Pediatrician', exp: '20 yrs', img: IMG.doc4, bio: 'Dedicated to child development, adolescent health and neonatal intensive care.' },
+                { name: 'Dr. Robert Thorne', spec: 'General Surgeon', exp: '14 yrs', img: IMG.doc5, bio: 'Specializes in minimally invasive laparoscopic procedures and trauma surgery.' },
+                { name: 'Dr. Lisa Wong', spec: 'Gynecologist', exp: '10 yrs', img: IMG.doc6, bio: 'Focused on maternal-fetal medicine, high-risk pregnancies, and reproductive health.' },
             ];
             const [active, setActive] = useState(0);
 
@@ -774,8 +778,8 @@
                             {/* Active doctor detail card */}
                             <FadeIn className="lg:col-span-5">
                                 <div className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-lg card-hover">
-                                    <div className="h-64 overflow-hidden relative">
-                                        <img src={docs[active].img} alt={docs[active].name} className="w-full h-full object-cover" />
+                                    <div className="h-96 md:h-[400px] overflow-hidden relative">
+                                        <img src={docs[active].img} alt={docs[active].name} className="w-full h-full object-cover object-[center_15%]" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent"></div>
                                         <div className="absolute bottom-4 left-6 text-white">
                                             <p className="text-secondary-light font-semibold text-sm">{docs[active].spec}</p>
@@ -800,15 +804,15 @@
                             </FadeIn>
 
                             {/* Doctor selector grid */}
-                            <div className="lg:col-span-7 grid sm:grid-cols-2 gap-4">
+                            <div className="lg:col-span-7 grid sm:grid-cols-2 gap-5">
                                 {docs.map((d, i) => (
                                     <FadeIn key={i} delay={i * 60}>
-                                        <button onClick={() => setActive(i)} className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 card-hover text-left ${active === i ? 'bg-primary/[0.04] border-secondary/40 shadow-lg ring-1 ring-secondary/20' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
-                                            <img src={d.img} alt={d.name} className={`w-16 h-16 rounded-xl object-cover transition-all duration-300 ${active === i ? 'ring-2 ring-secondary ring-offset-2' : ''}`} />
-                                            <div>
-                                                <h4 className="font-bold text-slate-800 text-sm">{d.name}</h4>
-                                                <p className="text-slate-500 text-xs mt-0.5">{d.spec}</p>
-                                                <p className="text-secondary text-xs font-semibold mt-1">{d.exp} experience</p>
+                                        <button onClick={() => setActive(i)} className={`w-full flex items-center gap-5 p-5 md:p-6 rounded-3xl border transition-all duration-300 card-hover text-left ${active === i ? 'bg-primary/[0.04] border-secondary/40 shadow-lg ring-1 ring-secondary/20' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+                                            <img src={d.img} alt={d.name} className={`w-20 h-20 rounded-2xl object-cover transition-all duration-300 ${active === i ? 'ring-2 ring-secondary ring-offset-2' : ''}`} />
+                                            <div className="space-y-1">
+                                                <h4 className="font-outfit font-bold text-slate-800 text-base leading-none">{d.name}</h4>
+                                                <p className="text-slate-500 text-xs font-medium">{d.spec}</p>
+                                                <span className="inline-flex text-[11px] font-bold text-secondary bg-secondary/10 px-2.5 py-1 rounded-full">{d.exp} experience</span>
                                             </div>
                                             {active === i && <div className="ml-auto w-2 h-2 bg-secondary rounded-full animate-pulse"></div>}
                                         </button>
