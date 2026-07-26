@@ -355,21 +355,21 @@
             const slides = [
                 {
                     badge: 'Your Health, Our Priority',
-                    heading: <>Best services for <span className="gradient-text">your health</span> & family</>,
+                    heading: <>Best services for <span className="text-emerald-400">your health</span> & family</>,
                     desc: 'Experience world-class treatment with compassionate care, board-certified specialists, and fully integrated personal diagnostic tracking.',
                     img: IMG.heroSlide1,
                     imgAlt: 'Lady doctor checkup patient',
                 },
                 {
                     badge: 'World-Class Infrastructure',
-                    heading: <>Advanced medical <span className="gradient-text">center built</span> for healing</>,
+                    heading: <>Advanced medical <span className="text-emerald-400">center built</span> for healing</>,
                     desc: 'State-of-the-art facilities equipped with modern surgical theaters, comfortable patient recovery wards, and immediate response care.',
                     img: IMG.heroSlide2,
                     imgAlt: 'Modern hospital building exterior',
                 },
                 {
                     badge: 'Warm & Caring Environment',
-                    heading: <>A patient-first <span className="gradient-text">experience from</span> day one</>,
+                    heading: <>A patient-first <span className="text-emerald-400">experience from</span> day one</>,
                     desc: 'Friendly guidance, fast-track digital registrations, and seamless care coordination designed to give you peace of mind.',
                     img: IMG.heroSlide3,
                     imgAlt: 'Modern hospital lobby reception',
@@ -405,19 +405,26 @@
             const slide = slides[current];
 
             return (
-                <section id="home" className="hero-mesh overflow-hidden relative">
-                    {/* Decorative orbs */}
-                    <div className="absolute top-16 left-8 w-80 h-80 bg-secondary/[0.05] rounded-full blur-3xl pointer-events-none"></div>
-                    <div className="absolute bottom-8 right-12 w-96 h-96 bg-accent/[0.04] rounded-full blur-3xl pointer-events-none"></div>
-                    <div className="absolute top-32 right-1/4 w-3 h-3 bg-secondary/25 rounded-full animate-float pointer-events-none"></div>
-                    <div className="absolute bottom-40 left-1/3 w-2 h-2 bg-accent/20 rounded-full animate-float-delay pointer-events-none"></div>
-                    <div className="absolute top-1/2 left-16 w-4 h-4 bg-secondary/10 rounded-full animate-float-slow pointer-events-none"></div>
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-6 lg:gap-10 items-center py-10 lg:py-24 relative">
+                <section id="home" className="relative overflow-hidden min-h-[600px] lg:min-h-[700px] flex items-center">
+                    {/* Background images cross-fade slider */}
+                    <div className="absolute inset-0 z-0">
+                        {slides.map((s, i) => (
+                            <div key={i} 
+                                className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${i === current ? 'opacity-100' : 'opacity-0'}`} 
+                                style={{ backgroundImage: `url(${s.img})` }} />
+                        ))}
+                        {/* Gradient Overlays for high-contrast text visibility */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/95 via-primary/80 to-slate-900/30 z-0"></div>
+                        <div className="absolute inset-0 bg-slate-900/35 z-0"></div>
+                    </div>
+
+                    {/* Content Layer */}
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-6 lg:gap-10 items-center py-20 lg:py-32 relative z-10 w-full">
                         <div className="lg:col-span-6 space-y-5 lg:space-y-7">
                             {/* Animated badge */}
                             <FadeIn>
-                                <span key={'badge-'+current} className="inline-flex items-center gap-2 bg-secondary/10 text-secondary text-xs font-bold px-4 py-2 rounded-full tracking-wide hero-slide-active">
-                                    <span className="w-2 h-2 bg-secondary rounded-full animate-pulse"></span>
+                                <span key={'badge-'+current} className="inline-flex items-center gap-2 bg-white/10 border border-white/10 text-emerald-300 text-xs font-bold px-4 py-2 rounded-full tracking-wide hero-slide-active">
+                                    <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
                                     {slide.badge}
                                 </span>
                             </FadeIn>
@@ -426,7 +433,7 @@
                             <div className="relative min-h-[96px] sm:min-h-[140px] lg:min-h-[180px]">
                                 {slides.map((s, i) => (
                                     <h1 key={i}
-                                        className={`font-outfit font-black text-3xl sm:text-5xl lg:text-[3.5rem] text-slate-900 leading-[1.1] tracking-tight transition-all duration-700 ease-out ${i === current ? 'opacity-100 translate-y-0 relative' : 'opacity-0 translate-y-4 absolute top-0 left-0 right-0 pointer-events-none'}`}>
+                                        className={`font-outfit font-black text-3xl sm:text-5xl lg:text-[3.5rem] text-white leading-[1.1] tracking-tight transition-all duration-700 ease-out ${i === current ? 'opacity-100 translate-y-0 relative' : 'opacity-0 translate-y-4 absolute top-0 left-0 right-0 pointer-events-none'}`}>
                                         {s.heading}
                                     </h1>
                                 ))}
@@ -436,7 +443,7 @@
                             <div className="relative min-h-[44px] sm:min-h-[52px]">
                                 {slides.map((s, i) => (
                                     <p key={i}
-                                        className={`text-slate-500 text-sm sm:text-base lg:text-lg max-w-md leading-relaxed transition-all duration-600 delay-100 ease-out ${i === current ? 'opacity-100 translate-y-0 relative' : 'opacity-0 translate-y-3 absolute top-0 left-0 right-0 pointer-events-none'}`}>
+                                        className={`text-white/80 text-sm sm:text-base lg:text-lg max-w-md leading-relaxed transition-all duration-600 delay-100 ease-out ${i === current ? 'opacity-100 translate-y-0 relative' : 'opacity-0 translate-y-3 absolute top-0 left-0 right-0 pointer-events-none'}`}>
                                         {s.desc}
                                     </p>
                                 ))}
@@ -446,11 +453,11 @@
                             <div className="flex items-center gap-3">
                                 {slides.map((_, i) => (
                                     <button key={i} onClick={() => resetTimer(i)} className="group flex flex-col items-start gap-1.5">
-                                        <span className={`text-[11px] font-bold transition-all duration-300 ${i === current ? 'text-secondary' : 'text-slate-400'}`}>
+                                        <span className={`text-[11px] font-bold transition-all duration-300 ${i === current ? 'text-emerald-300' : 'text-white/40'}`}>
                                             0{i + 1}
                                         </span>
-                                        <div className="w-12 h-[3px] bg-slate-200 rounded-full overflow-hidden">
-                                            <div className={`h-full rounded-full transition-all ${i === current ? 'bg-secondary' : 'bg-transparent'}`}
+                                        <div className="w-12 h-[3px] bg-white/20 rounded-full overflow-hidden">
+                                            <div className={`h-full rounded-full transition-all ${i === current ? 'bg-emerald-400' : 'bg-transparent'}`}
                                                 style={{ width: i === current ? '100%' : '0%', transition: i === current ? 'width 5s linear' : 'width 0.3s' }}>
                                             </div>
                                         </div>
@@ -463,7 +470,7 @@
                                     <button onClick={() => document.getElementById('services').scrollIntoView({behavior:'smooth'})} className="group bg-secondary hover:bg-secondary-dark text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full text-sm font-bold shadow-lg shadow-secondary/20 hover:shadow-xl hover:shadow-secondary/30 transition-all duration-300 flex items-center gap-2">
                                         View Services <i className="fa-solid fa-arrow-right text-xs sm:text-sm group-hover:translate-x-1 transition-transform"></i>
                                     </button>
-                                    <button onClick={() => document.getElementById('contact').scrollIntoView({behavior:'smooth'})} className="group bg-white hover:bg-slate-50 text-slate-700 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full text-sm font-bold border border-slate-200 shadow-sm transition-all duration-300 flex items-center gap-2">
+                                    <button onClick={() => document.getElementById('contact').scrollIntoView({behavior:'smooth'})} className="group bg-white/10 hover:bg-white/20 text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full text-sm font-bold border border-white/20 transition-all duration-300 flex items-center gap-2">
                                         Book Appointment <i className="fa-regular fa-calendar-days text-xs sm:text-sm"></i>
                                     </button>
                                 </div>
@@ -475,8 +482,8 @@
                                         { icon: 'fa-clock', label: '24/7 emergency' },
                                         { icon: 'fa-shield-halved', label: 'HIPAA certified' },
                                     ].map((b, i) => (
-                                        <div key={i} className="flex items-center gap-2 text-sm text-slate-400">
-                                            <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center"><i className={`fa-solid ${b.icon} text-secondary text-xs`}></i></div>
+                                        <div key={i} className="flex items-center gap-2 text-sm text-white/60">
+                                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"><i className={`fa-solid ${b.icon} text-emerald-300 text-xs`}></i></div>
                                             <span>{b.label}</span>
                                         </div>
                                     ))}
@@ -484,48 +491,27 @@
                             </FadeIn>
                         </div>
 
-                        {/* Auto-rotating hero image */}
-                        <div className="lg:col-span-6 relative mt-6 lg:mt-0">
-                            <div className="relative">
-                                <div className="absolute -inset-4 bg-gradient-to-br from-secondary/15 to-accent/10 rounded-[2.5rem] blur-2xl"></div>
-                                <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/40 h-[260px] sm:h-[420px] lg:h-[480px]">
-                                    {slides.map((s, i) => (
-                                        <img key={i} src={s.img} alt={s.imgAlt}
-                                            className={`w-full h-full object-cover transition-all duration-800 ease-out ${i === current ? 'opacity-100 scale-100 relative' : 'opacity-0 scale-105 absolute inset-0 pointer-events-none'}`} />
-                                    ))}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent"></div>
-                                    
-                                    {/* Brand Logo Overlay matching screenshot layout */}
-                                    <div className="absolute top-6 right-6 z-10 glass px-4 py-2.5 rounded-2xl flex items-center gap-2 shadow-lg border border-white/40">
-                                        <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shadow-md">
-                                            <i className="fa-solid fa-square-h text-white text-base"></i>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="font-outfit font-black text-xs text-primary leading-none">Care<span className="text-secondary">Pulse</span></span>
-                                            <span className="text-[7px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Medical Center</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        {/* Right side floating badges */}
+                        <div className="hidden lg:flex lg:col-span-6 flex-col items-end gap-5 z-10 relative">
                             {/* Floating glass card — left */}
-                            <div className="absolute -bottom-5 -left-3 sm:-left-6 glass rounded-2xl shadow-xl p-3.5 flex items-center gap-3 animate-float z-10">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-secondary to-secondary-dark flex items-center justify-center shadow-md shadow-secondary/20">
+                            <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-3.5 flex items-center gap-3 animate-float border border-white/10">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-secondary to-secondary-dark flex items-center justify-center shadow-md">
                                     <i className="fa-solid fa-user-doctor text-white text-xs"></i>
                                 </div>
                                 <div>
-                                    <span className="text-primary font-black text-lg leading-none">540+</span>
-                                    <p className="text-[10px] text-slate-500 font-medium mt-0.5">Specialists</p>
+                                    <span className="text-white font-black text-lg leading-none">540+</span>
+                                    <p className="text-[10px] text-white/60 font-medium mt-0.5">Specialists</p>
                                 </div>
                             </div>
                             {/* Floating glass card — right */}
-                            <div className="absolute -top-3 -right-2 sm:-right-4 glass rounded-2xl shadow-xl p-3 animate-float-delay z-10">
+                            <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-4 animate-float-delay border border-white/10 self-start ml-20">
                                 <div className="flex items-center gap-2 mb-1.5">
                                     <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                                    <span className="text-[10px] font-bold text-slate-700">Live Monitoring</span>
+                                    <span className="text-[10px] font-bold text-white/80">Live Monitoring</span>
                                 </div>
                                 <div className="flex items-end gap-[3px]">
                                     {[38,62,48,78,52,68,88,58,72,44,82].map((h,i) => (
-                                        <div key={i} className="w-[4px] rounded-full bg-gradient-to-t from-secondary to-secondary-light" style={{height: h/6+'px', opacity: 0.5 + (h/176)}}></div>
+                                        <div key={i} className="w-[4px] rounded-full bg-gradient-to-t from-secondary to-secondary-light" style={{height: h/6+'px', opacity: 0.6 + (h/176)}}></div>
                                     ))}
                                 </div>
                             </div>
