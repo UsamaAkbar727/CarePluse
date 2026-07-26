@@ -166,9 +166,9 @@
             fac5: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800&h=600&fit=crop&q=80',
             fac6: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&h=600&fit=crop&q=80',
             // Hero slides
-            heroSlide1: 'https://images.unsplash.com/photo-1594824497964-58615b41637b?w=900&h=600&fit=crop&q=80',
-            heroSlide2: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=900&h=600&fit=crop&q=80',
-            heroSlide3: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=900&h=600&fit=crop&q=80',
+            heroSlide1: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=1600&h=900&fit=crop&q=80',
+            heroSlide2: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=1600&h=900&fit=crop&q=80',
+            heroSlide3: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1600&h=900&fit=crop&q=80',
         };
 
         // ---------- hooks ----------
@@ -411,7 +411,7 @@
                         {slides.map((s, i) => (
                             <div key={i} 
                                 className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${i === current ? 'opacity-100' : 'opacity-0'}`} 
-                                style={{ backgroundImage: `url(${s.img})` }} />
+                                style={{ backgroundImage: `url('${s.img}')` }} />
                         ))}
                         {/* Gradient Overlays for high-contrast text visibility */}
                         <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/95 via-primary/80 to-slate-900/30 z-0"></div>
