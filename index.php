@@ -166,9 +166,9 @@
             fac5: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800&h=600&fit=crop&q=80',
             fac6: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&h=600&fit=crop&q=80',
             // Hero slides
-            heroSlide1: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=900&h=600&fit=crop&q=80',
-            heroSlide2: 'https://images.unsplash.com/photo-1551076805-e1869033e561?w=900&h=600&fit=crop&q=80',
-            heroSlide3: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=900&h=600&fit=crop&q=80',
+            heroSlide1: 'https://images.unsplash.com/photo-1594824497964-58615b41637b?w=900&h=600&fit=crop&q=80',
+            heroSlide2: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=900&h=600&fit=crop&q=80',
+            heroSlide3: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=900&h=600&fit=crop&q=80',
         };
 
         // ---------- hooks ----------
@@ -354,25 +354,25 @@
         function Hero() {
             const slides = [
                 {
-                    badge: 'Next-Gen Clinical Intelligence',
-                    heading: <>Advanced <span className="gradient-text">health intelligence</span> for tomorrow</>,
-                    desc: 'Board-certified specialists, AI-assisted diagnostics, and seamless patient journey — all in one ecosystem.',
+                    badge: 'Your Health, Our Priority',
+                    heading: <>Best services for <span className="gradient-text">your health</span> & family</>,
+                    desc: 'Experience world-class treatment with compassionate care, board-certified specialists, and fully integrated personal diagnostic tracking.',
                     img: IMG.heroSlide1,
-                    imgAlt: 'Modern healthcare facility corridor',
+                    imgAlt: 'Lady doctor checkup patient',
                 },
                 {
-                    badge: 'Precision Medicine & Care',
-                    heading: <>Where <span className="gradient-text">compassion meets</span> cutting-edge science</>,
-                    desc: 'Our multidisciplinary teams deliver personalized treatments using genomics, robotics, and AI-driven protocols.',
+                    badge: 'World-Class Infrastructure',
+                    heading: <>Advanced medical <span className="gradient-text">center built</span> for healing</>,
+                    desc: 'State-of-the-art facilities equipped with modern surgical theaters, comfortable patient recovery wards, and immediate response care.',
                     img: IMG.heroSlide2,
-                    imgAlt: 'Advanced ICU monitoring systems',
+                    imgAlt: 'Modern hospital building exterior',
                 },
                 {
-                    badge: '24/7 Emergency Response',
-                    heading: <>Saving lives with <span className="gradient-text">rapid critical</span> intervention</>,
-                    desc: 'Level-1 trauma center with air ambulance, real-time telemetry, and the fastest door-to-treatment times in the region.',
+                    badge: 'Warm & Caring Environment',
+                    heading: <>A patient-first <span className="gradient-text">experience from</span> day one</>,
+                    desc: 'Friendly guidance, fast-track digital registrations, and seamless care coordination designed to give you peace of mind.',
                     img: IMG.heroSlide3,
-                    imgAlt: 'Cardiac monitoring and diagnostics',
+                    imgAlt: 'Modern hospital lobby reception',
                 },
             ];
 
@@ -390,7 +390,7 @@
             useEffect(() => {
                 timerRef.current = setInterval(() => {
                     setCurrent(prev => (prev + 1) % slides.length);
-                }, 4000);
+                }, 5000);
                 return () => clearInterval(timerRef.current);
             }, [slides.length]);
 
@@ -399,7 +399,7 @@
                 goTo(idx);
                 timerRef.current = setInterval(() => {
                     setCurrent(prev => (prev + 1) % slides.length);
-                }, 4000);
+                }, 5000);
             };
 
             const slide = slides[current];
@@ -412,7 +412,7 @@
                     <div className="absolute top-32 right-1/4 w-3 h-3 bg-secondary/25 rounded-full animate-float pointer-events-none"></div>
                     <div className="absolute bottom-40 left-1/3 w-2 h-2 bg-accent/20 rounded-full animate-float-delay pointer-events-none"></div>
                     <div className="absolute top-1/2 left-16 w-4 h-4 bg-secondary/10 rounded-full animate-float-slow pointer-events-none"></div>
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-6 lg:gap-10 items-center py-10 lg:py-28 relative">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-6 lg:gap-10 items-center py-10 lg:py-24 relative">
                         <div className="lg:col-span-6 space-y-5 lg:space-y-7">
                             {/* Animated badge */}
                             <FadeIn>
@@ -451,7 +451,7 @@
                                         </span>
                                         <div className="w-12 h-[3px] bg-slate-200 rounded-full overflow-hidden">
                                             <div className={`h-full rounded-full transition-all ${i === current ? 'bg-secondary' : 'bg-transparent'}`}
-                                                style={{ width: i === current ? '100%' : '0%', transition: i === current ? 'width 4s linear' : 'width 0.3s' }}>
+                                                style={{ width: i === current ? '100%' : '0%', transition: i === current ? 'width 5s linear' : 'width 0.3s' }}>
                                             </div>
                                         </div>
                                     </button>
@@ -460,10 +460,12 @@
 
                             <FadeIn delay={300}>
                                 <div className="flex flex-wrap gap-3.5 items-center">
-                                    <button onClick={() => document.getElementById('contact').scrollIntoView({behavior:'smooth'})} className="group bg-primary hover:bg-primary-dark text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 flex items-center gap-2">
-                                        Book Diagnostic Slot <i className="fa-solid fa-arrow-right text-xs sm:text-sm group-hover:translate-x-1 transition-transform"></i>
+                                    <button onClick={() => document.getElementById('services').scrollIntoView({behavior:'smooth'})} className="group bg-secondary hover:bg-secondary-dark text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full text-sm font-bold shadow-lg shadow-secondary/20 hover:shadow-xl hover:shadow-secondary/30 transition-all duration-300 flex items-center gap-2">
+                                        View Services <i className="fa-solid fa-arrow-right text-xs sm:text-sm group-hover:translate-x-1 transition-transform"></i>
                                     </button>
-                                    <a href="login.php" className="group text-slate-500 font-semibold flex items-center gap-2 hover:text-primary transition text-sm">Staff Access <i className="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i></a>
+                                    <button onClick={() => document.getElementById('contact').scrollIntoView({behavior:'smooth'})} className="group bg-white hover:bg-slate-50 text-slate-700 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full text-sm font-bold border border-slate-200 shadow-sm transition-all duration-300 flex items-center gap-2">
+                                        Book Appointment <i className="fa-regular fa-calendar-days text-xs sm:text-sm"></i>
+                                    </button>
                                 </div>
                             </FadeIn>
                             <FadeIn delay={400}>
@@ -492,6 +494,17 @@
                                             className={`w-full h-full object-cover transition-all duration-800 ease-out ${i === current ? 'opacity-100 scale-100 relative' : 'opacity-0 scale-105 absolute inset-0 pointer-events-none'}`} />
                                     ))}
                                     <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent"></div>
+                                    
+                                    {/* Brand Logo Overlay matching screenshot layout */}
+                                    <div className="absolute top-6 right-6 z-10 glass px-4 py-2.5 rounded-2xl flex items-center gap-2 shadow-lg border border-white/40">
+                                        <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shadow-md">
+                                            <i className="fa-solid fa-square-h text-white text-base"></i>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="font-outfit font-black text-xs text-primary leading-none">Care<span className="text-secondary">Pulse</span></span>
+                                            <span className="text-[7px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Medical Center</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             {/* Floating glass card — left */}
