@@ -166,7 +166,7 @@
             fac5: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800&h=600&fit=crop&q=80',
             fac6: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&h=600&fit=crop&q=80',
             // Hero slides
-            heroSlide1: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=1600&h=900&fit=crop&q=80',
+            heroSlide1: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=1600&h=900&fit=crop&q=80',
             heroSlide2: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=1600&h=900&fit=crop&q=80',
             heroSlide3: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1600&h=900&fit=crop&q=80',
         };
