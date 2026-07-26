@@ -242,6 +242,7 @@
                 { name: 'Doctors', icon: 'fa-user-doctor' },
                 { name: 'Services', icon: 'fa-hand-holding-medical' },
                 { name: 'Testimonials', icon: 'fa-quote-left' },
+                { name: 'FAQ', icon: 'fa-circle-question' },
                 { name: 'Contact', icon: 'fa-envelope' },
             ];
             const scrollTo = (name) => { setMobile(false); setActiveLink(name); document.getElementById(name.toLowerCase())?.scrollIntoView({ behavior: 'smooth' }); };
@@ -548,6 +549,37 @@
                                 </FadeIn>
                             );
                         })}
+                    </div>
+                </section>
+            );
+        }
+
+        // ======================================================
+        //  INSURANCES — trusted partners & accepted plans
+        // ======================================================
+        function Insurances() {
+            const partners = [
+                { name: 'MetLife', icon: 'fa-shield-heart', color: 'text-blue-500 bg-blue-500/10' },
+                { name: 'Allianz', icon: 'fa-building-shield', color: 'text-indigo-500 bg-indigo-500/10' },
+                { name: 'Aetna', icon: 'fa-heart-pulse', color: 'text-red-500 bg-red-500/10' },
+                { name: 'Cigna', icon: 'fa-user-shield', color: 'text-cyan-500 bg-cyan-500/10' },
+                { name: 'Blue Cross', icon: 'fa-house-medical-shield', color: 'text-sky-600 bg-sky-600/10' },
+                { name: 'UnitedHealth', icon: 'fa-kit-medical', color: 'text-emerald-500 bg-emerald-500/10' }
+            ];
+            return (
+                <section className="bg-slate-50/50 py-10 border-b border-slate-100 overflow-hidden">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-6">Accepted Insurance & Healthcare Partners</p>
+                        <div className="flex flex-wrap justify-center items-center gap-6 md:gap-12 opacity-75">
+                            {partners.map((p, i) => (
+                                <FadeIn key={i} delay={i * 50} className="flex items-center gap-2.5 px-5 py-2.5 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md hover:border-secondary/20 hover:scale-[1.03] transition-all duration-300 group cursor-default">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${p.color} group-hover:scale-110 transition-transform duration-300`}>
+                                        <i className={`fa-solid ${p.icon} text-sm`}></i>
+                                    </div>
+                                    <span className="font-outfit font-bold text-slate-700 text-sm tracking-tight group-hover:text-primary transition-colors">{p.name}</span>
+                                </FadeIn>
+                            ))}
+                        </div>
                     </div>
                 </section>
             );
@@ -958,6 +990,115 @@
         }
 
         // ======================================================
+        //  FAQ — accordion layout with active state & support card
+        // ======================================================
+        function FAQ() {
+            const faqs = [
+                {
+                    q: "How do I book an appointment with a specialist?",
+                    a: "You can book an appointment easily by using our online consultation form below, or by clicking the 'Book Slot' button in the navigation bar. Alternatively, you can call our 24/7 registration desk at +1 (555) 234-5678."
+                },
+                {
+                    q: "Do you accept international health insurance plans?",
+                    a: "Yes, CarePulse accepts most major international and national insurance plans, including Allianz, Blue Cross, Cigna, Aetna, and UnitedHealthcare. Please contact our billing office prior to your visit to confirm coverage details."
+                },
+                {
+                    q: "What should I bring for my first diagnostic checkup?",
+                    a: "For your first visit, please bring a valid government-issued ID, your insurance card, any previous medical records or test results, and a list of current medications you are taking."
+                },
+                {
+                    q: "Is telemedicine available for all specialties?",
+                    a: "Most of our medical specialties offer secure online video consultations. This includes Neurology, Cardiology follow-ups, Pediatrics, and General Medicine. You can request a telehealth slot directly via our online form."
+                },
+                {
+                    q: "How do I access my medical records and lab reports?",
+                    a: "All patient records and diagnostic reports are fully digitized. You can access them securely through our Patient Portal. Login credentials will be provided to you via email after your first registration."
+                }
+            ];
+
+            const [openIdx, setOpenIdx] = useState(0);
+
+            return (
+                <section id="faq" className="section-pad bg-warm relative overflow-hidden">
+                    <div className="absolute top-1/4 left-0 w-48 h-48 dot-pattern rounded-full pointer-events-none opacity-40"></div>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <FadeIn className="text-center max-w-2xl mx-auto mb-14">
+                            <span className="inline-flex items-center gap-2 text-secondary font-bold text-xs tracking-[0.2em] uppercase">
+                                <span className="w-8 h-[2px] bg-secondary rounded-full"></span> FAQ <span className="w-8 h-[2px] bg-secondary rounded-full"></span>
+                            </span>
+                            <h2 className="font-outfit font-black text-3xl sm:text-4xl text-slate-900 mt-3">Frequently asked questions</h2>
+                            <p className="text-slate-500 text-sm mt-3">Find answers to common queries about our healthcare services, billing, and patient care.</p>
+                        </FadeIn>
+
+                        <div className="grid lg:grid-cols-12 gap-8 items-start">
+                            <div className="lg:col-span-4 space-y-6">
+                                <FadeIn>
+                                    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-md">
+                                        <div className="w-12 h-12 rounded-2xl bg-secondary/10 flex items-center justify-center mb-4">
+                                            <i className="fa-solid fa-circle-question text-secondary text-xl"></i>
+                                        </div>
+                                        <h4 className="font-outfit font-bold text-slate-800 text-lg">Still have questions?</h4>
+                                        <p className="text-slate-500 text-xs mt-2 leading-relaxed">If you cannot find the answer to your query in our FAQs, feel free to contact our support team directly. We are here to help you 24/7.</p>
+                                        
+                                        <div className="space-y-3 mt-6">
+                                            <a href="tel:+15552345678" className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-secondary/20 hover:bg-slate-100/55 transition-all group">
+                                                <div className="w-8 h-8 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center group-hover:scale-105 transition-transform"><i className="fa-solid fa-phone text-xs"></i></div>
+                                                <div>
+                                                    <p className="text-[10px] text-slate-400 font-semibold uppercase leading-none">Call Support</p>
+                                                    <p className="text-xs font-bold text-slate-700 mt-1">+1 (555) 234-5678</p>
+                                                </div>
+                                            </a>
+                                            <a href="mailto:support@carepulse.com" className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-secondary/20 hover:bg-slate-100/55 transition-all group">
+                                                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition-transform"><i className="fa-solid fa-envelope text-xs"></i></div>
+                                                <div>
+                                                    <p className="text-[10px] text-slate-400 font-semibold uppercase leading-none">Email Us</p>
+                                                    <p className="text-xs font-bold text-slate-700 mt-1">support@carepulse.com</p>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </FadeIn>
+                                
+                                <FadeIn delay={100}>
+                                    <div className="bg-gradient-to-br from-secondary to-secondary-dark text-white p-6 rounded-3xl shadow-lg">
+                                        <h4 className="font-outfit font-bold text-base">Need Urgent Medical Help?</h4>
+                                        <p className="text-white/75 text-xs mt-1.5 leading-relaxed">Our emergency response team is active 24/7. Call our priority line for immediate dispatch.</p>
+                                        <a href="tel:+1555911" className="mt-4 inline-flex items-center gap-2 bg-white text-secondary px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:bg-slate-50 transition-colors">
+                                            <i className="fa-solid fa-phone-volume"></i> Call +1 (555) 911
+                                        </a>
+                                    </div>
+                                </FadeIn>
+                            </div>
+
+                            <div className="lg:col-span-8 space-y-4">
+                                {faqs.map((faq, idx) => {
+                                    const isOpen = openIdx === idx;
+                                    return (
+                                        <FadeIn key={idx} delay={idx * 50}>
+                                            <div className={`bg-white rounded-2xl border transition-all duration-300 overflow-hidden ${isOpen ? 'border-secondary/40 shadow-md ring-1 ring-secondary/5' : 'border-slate-200 hover:border-slate-300'}`}>
+                                                <button onClick={() => setOpenIdx(isOpen ? -1 : idx)} className="w-full flex items-center justify-between p-5 md:p-6 text-left outline-none">
+                                                    <span className={`font-outfit font-bold text-sm md:text-base transition-colors duration-300 ${isOpen ? 'text-secondary' : 'text-slate-800'}`}>{faq.q}</span>
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ${isOpen ? 'bg-secondary/10 text-secondary rotate-180' : 'bg-slate-100 text-slate-500'}`}>
+                                                        <i className="fa-solid fa-chevron-down text-xs"></i>
+                                                    </div>
+                                                </button>
+                                                <div className={`transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[200px] border-t border-slate-100 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+                                                    <div className="p-5 md:p-6 text-slate-500 text-xs md:text-sm leading-relaxed bg-slate-50/50">
+                                                        {faq.a}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </FadeIn>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        // ======================================================
         //  CTA — background image, glass overlay
         // ======================================================
         function CTA() {
@@ -1128,7 +1269,7 @@
                             <div>
                                 <h5 className="font-bold text-white mb-5 text-sm tracking-wide">Quick Links</h5>
                                 <ul className="space-y-2.5">
-                                    {['Home', 'About', 'Departments', 'Doctors', 'Services', 'Contact'].map(l => (
+                                    {['Home', 'About', 'Departments', 'Doctors', 'Services', 'FAQ', 'Contact'].map(l => (
                                         <li key={l}><button onClick={() => document.getElementById(l.toLowerCase()).scrollIntoView({behavior:'smooth'})} className="text-sm text-white/50 hover:text-secondary-light transition-colors duration-200 flex items-center gap-2"><i className="fa-solid fa-chevron-right text-[8px] text-secondary/50"></i> {l}</button></li>
                                     ))}
                                 </ul>
@@ -1198,12 +1339,14 @@
                     <main className="flex-1">
                         <Hero />
                         <Stats />
+                        <Insurances />
                         <About />
                         <Facilities />
                         <Departments />
                         <Doctors />
                         <Services />
                         <Testimonials />
+                        <FAQ />
                         <CTA />
                         <Contact />
                     </main>
